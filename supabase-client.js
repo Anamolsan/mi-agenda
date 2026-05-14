@@ -1,0 +1,3 @@
+var SUPABASE_URL = 'https://nrizmageyrasdcadpvpl.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yaXptYWdleXJhc2RjYWRwdnBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODAzNTQsImV4cCI6MjA5NDM1NjM1NH0.fa8vBkqpzgk8zrvFKh8VQn9hGOHbHqqp0Waxlo58RrM';
+var _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
