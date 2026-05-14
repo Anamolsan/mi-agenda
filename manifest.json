@@ -1,0 +1,22 @@
+{
+  "name": "Mi Agenda",
+  "short_name": "Agenda",
+  "description": "Agenda personal con tareas, notas, calendario, contactos, recordatorios y diario de bienestar",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8f6f2",
+  "theme_color": "#748ffc",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

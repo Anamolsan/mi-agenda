@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#748ffc">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <title>Mi Agenda</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    (function(){
+      var t=localStorage.getItem('agenda_theme')||'light';
+      var a=localStorage.getItem('agenda_accent')||'#748ffc';
+      document.documentElement.setAttribute('data-theme',t);
+      document.documentElement.style.setProperty('--primary',a);
+    })();
+  </script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-top">
+        <div>
+          <h1 id="greeting"></h1>
+          <p class="header-date" id="headerDate"></p>
+        </div>
+        <button class="settings-btn" id="settingsBtn" title="Ajustes">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+      <div class="settings-panel" id="settingsPanel" hidden>
+        <div class="setting-row">
+          <span class="setting-label">Tema</span>
+          <div class="theme-toggle" id="themeToggle">
+            <button class="theme-opt" data-theme="light" title="Claro">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </button>
+            <button class="theme-opt" data-theme="dark" title="Oscuro">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Color</span>
+          <div class="accent-picker" id="accentPicker">
+            <span class="accent-dot" data-accent="#748ffc" style="background:#748ffc" title="Azul"></span>
+            <span class="accent-dot" data-accent="#5c7cfa" style="background:#5c7cfa" title="Indigo"></span>
+            <span class="accent-dot" data-accent="#cc5de8" style="background:#cc5de8" title="Violeta"></span>
+            <span class="accent-dot" data-accent="#f06595" style="background:#f06595" title="Rosa"></span>
+            <span class="accent-dot" data-accent="#ff6b6b" style="background:#ff6b6b" title="Rojo"></span>
+            <span class="accent-dot" data-accent="#ff922b" style="background:#ff922b" title="Naranja"></span>
+            <span class="accent-dot" data-accent="#51cf66" style="background:#51cf66" title="Verde"></span>
+            <span class="accent-dot" data-accent="#22b8cf" style="background:#22b8cf" title="Turquesa"></span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TAREAS -->
+    <section class="section" id="secTareas">
+      <div class="section-toolbar">
+        <div class="search-box">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" id="searchTasks" placeholder="Buscar tareas...">
+        </div>
+        <div class="filters">
+          <select id="filterStatus"><option value="all">Todas</option><option value="pending">Pendientes</option><option value="completed">Completadas</option></select>
+          <select id="filterPriority"><option value="all">Prioridad</option><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select>
+          <select id="sortTasks"><option value="created-desc">Recientes</option><option value="priority">Prioridad</option><option value="dueDate">Fecha limite</option><option value="alpha">A - Z</option></select>
+        </div>
+      </div>
+      <div class="task-list" id="taskList"></div>
+      <div class="empty-state" id="emptyTasks" hidden>
+        <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" opacity="0.5"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg>
+        <p id="emptyTasksText">Sin tareas por ahora</p>
+      </div>
+    </section>
+
+    <!-- NOTAS -->
+    <section class="section" id="secNotas" hidden>
+      <div class="section-toolbar">
+        <div class="search-box">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" id="searchNotes" placeholder="Buscar notas...">
+        </div>
+      </div>
+      <div class="notes-grid" id="notesGrid"></div>
+      <div class="empty-state" id="emptyNotes" hidden>
+        <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" opacity="0.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <p>Sin notas todavia</p>
+      </div>
+    </section>
+
+    <!-- CALENDARIO -->
+    <section class="section" id="secCalendario" hidden>
+      <div class="cal-header">
+        <button class="cal-nav" id="calPrev"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <h2 id="calTitle"></h2>
+        <button class="cal-nav" id="calNext"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+      </div>
+      <div class="cal-weekdays" id="calWeekdays"></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-day-detail">
+        <h3 id="calDayTitle"></h3>
+        <div id="calDayItems"></div>
+        <div class="empty-state small" id="emptyDayItems" hidden><p>Nada para este dia</p></div>
+      </div>
+    </section>
+
+    <!-- CONTACTOS -->
+    <section class="section" id="secContactos" hidden>
+      <div class="section-toolbar">
+        <div class="search-box">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" id="searchContacts" placeholder="Buscar contactos...">
+        </div>
+      </div>
+      <div class="contact-list" id="contactList"></div>
+      <div class="empty-state" id="emptyContacts" hidden>
+        <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" opacity="0.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <p>Sin contactos guardados</p>
+      </div>
+    </section>
+
+    <!-- RECORDATORIOS -->
+    <section class="section" id="secRecordatorios" hidden>
+      <div class="filters" style="margin-bottom:12px">
+        <select id="filterReminders"><option value="pending">Pendientes</option><option value="all">Todos</option><option value="completed">Completados</option></select>
+      </div>
+      <div class="reminder-list" id="reminderList"></div>
+      <div class="empty-state" id="emptyReminders" hidden>
+        <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" opacity="0.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <p>Sin recordatorios</p>
+      </div>
+    </section>
+
+    <!-- DIARIO -->
+    <section class="section" id="secDiario" hidden>
+      <div class="diary-card">
+        <h3 class="diary-card-title">Como te sientes hoy?</h3>
+        <div class="mood-faces" id="moodFaces">
+          <button class="mood-face" data-mood="1" title="Muy mal">😢</button>
+          <button class="mood-face" data-mood="2" title="Mal">😕</button>
+          <button class="mood-face" data-mood="3" title="Normal">😐</button>
+          <button class="mood-face" data-mood="4" title="Bien">🙂</button>
+          <button class="mood-face" data-mood="5" title="Genial">😄</button>
+        </div>
+        <div class="diary-ratings">
+          <div class="diary-rating-row"><span class="diary-rating-label">Energia</span><div class="rating-dots" data-field="energy"><span data-val="1"></span><span data-val="2"></span><span data-val="3"></span><span data-val="4"></span><span data-val="5"></span></div></div>
+          <div class="diary-rating-row"><span class="diary-rating-label">Sueno</span><div class="rating-dots" data-field="sleep"><span data-val="1"></span><span data-val="2"></span><span data-val="3"></span><span data-val="4"></span><span data-val="5"></span></div></div>
+          <div class="diary-rating-row"><span class="diary-rating-label">Ansiedad</span><div class="rating-dots" data-field="anxiety"><span data-val="1"></span><span data-val="2"></span><span data-val="3"></span><span data-val="4"></span><span data-val="5"></span></div></div>
+          <div class="diary-rating-row"><span class="diary-rating-label">Estres</span><div class="rating-dots" data-field="stress"><span data-val="1"></span><span data-val="2"></span><span data-val="3"></span><span data-val="4"></span><span data-val="5"></span></div></div>
+          <div class="diary-rating-row"><span class="diary-rating-label">Motivacion</span><div class="rating-dots" data-field="motivation"><span data-val="1"></span><span data-val="2"></span><span data-val="3"></span><span data-val="4"></span><span data-val="5"></span></div></div>
+        </div>
+        <div class="diary-tags-section">
+          <span class="diary-rating-label">Que has hecho hoy?</span>
+          <div class="diary-tags" id="diaryTags">
+            <button class="diary-tag" data-tag="ejercicio">Ejercicio</button>
+            <button class="diary-tag" data-tag="social">Social</button>
+            <button class="diary-tag" data-tag="trabajo">Trabajo</button>
+            <button class="diary-tag" data-tag="descanso">Descanso</button>
+            <button class="diary-tag" data-tag="creativo">Creativo</button>
+            <button class="diary-tag" data-tag="naturaleza">Naturaleza</button>
+            <button class="diary-tag" data-tag="lectura">Lectura</button>
+            <button class="diary-tag" data-tag="meditacion">Meditacion</button>
+            <button class="diary-tag" data-tag="familia">Familia</button>
+            <button class="diary-tag" data-tag="musica">Musica</button>
+          </div>
+        </div>
+        <textarea id="diaryNotes" rows="2" maxlength="1000" placeholder="Como ha ido el dia? Que destaca?"></textarea>
+        <button class="btn btn-primary diary-save" id="btnSaveDiary">Guardar entrada de hoy</button>
+      </div>
+      <div class="diary-summary" id="diarySummary">
+        <h3 class="diary-card-title">Ultima semana</h3>
+        <div class="diary-week" id="diaryWeek"></div>
+        <div class="diary-averages" id="diaryAverages"></div>
+      </div>
+      <h3 class="diary-section-title">Historial</h3>
+      <div class="diary-history" id="diaryHistory"></div>
+      <div class="empty-state" id="emptyDiary" hidden>
+        <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" opacity="0.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="2.5"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="2.5"/></svg>
+        <p>Empieza a registrar como te sientes cada dia</p>
+      </div>
+    </section>
+
+    <!-- FAB -->
+    <button class="fab" id="fab" title="Nuevo">
+      <svg viewBox="0 0 24 24" width="26" height="26"><line x1="12" y1="5" x2="12" y2="19" stroke="white" stroke-width="2.5" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </button>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-section="secTareas"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Tareas</span></button>
+      <button class="nav-btn" data-section="secNotas"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Notas</span></button>
+      <button class="nav-btn" data-section="secCalendario"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Agenda</span></button>
+      <button class="nav-btn" data-section="secContactos"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Contactos</span></button>
+      <button class="nav-btn" data-section="secRecordatorios"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Alertas</span></button>
+      <button class="nav-btn" data-section="secDiario"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="2.5"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="2.5"/></svg><span>Diario</span></button>
+    </nav>
+  </div>
+
+  <!-- MODALES -->
+  <div class="modal-overlay" id="modalTask" hidden><div class="modal"><h2 id="modalTaskTitle">Nueva tarea</h2><form id="formTask"><div class="form-group"><label>Titulo *</label><input type="text" id="taskTitle" required maxlength="120" placeholder="Que necesitas hacer?"></div><div class="form-group"><label>Descripcion</label><textarea id="taskDesc" rows="2" maxlength="500" placeholder="Detalles..."></textarea></div><div class="form-row"><div class="form-group"><label>Prioridad</label><select id="taskPriority"><option value="baja">Baja</option><option value="media" selected>Media</option><option value="alta">Alta</option></select></div><div class="form-group"><label>Categoria</label><input type="text" id="taskCategory" maxlength="30" placeholder="Ej: Trabajo" list="taskCatList"><datalist id="taskCatList"></datalist></div></div><div class="form-row"><div class="form-group"><label>Fecha limite</label><input type="date" id="taskDueDate"></div><div class="form-group"><label>Hora</label><input type="time" id="taskDueTime"></div></div><div class="form-actions"><button type="button" class="btn btn-secondary" data-close="modalTask">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form></div></div>
+
+  <div class="modal-overlay" id="modalNote" hidden><div class="modal"><h2 id="modalNoteTitle">Nueva nota</h2><form id="formNote"><div class="form-group"><label>Titulo</label><input type="text" id="noteTitle" maxlength="120" placeholder="Titulo de la nota"></div><div class="form-group"><label>Contenido *</label><textarea id="noteContent" rows="5" required maxlength="2000" placeholder="Escribe aqui..."></textarea></div><div class="form-group"><label>Color</label><div class="color-picker" id="noteColorPicker"><span class="color-dot selected" data-color="#ffffff" style="background:#ffffff"></span><span class="color-dot" data-color="#fff3bf" style="background:#fff3bf"></span><span class="color-dot" data-color="#d3f9d8" style="background:#d3f9d8"></span><span class="color-dot" data-color="#d0ebff" style="background:#d0ebff"></span><span class="color-dot" data-color="#e8d5f5" style="background:#e8d5f5"></span><span class="color-dot" data-color="#ffe0e6" style="background:#ffe0e6"></span><span class="color-dot" data-color="#ffe8cc" style="background:#ffe8cc"></span><span class="color-dot" data-color="#e3fafc" style="background:#e3fafc"></span></div></div><div class="form-actions"><button type="button" class="btn btn-secondary" data-close="modalNote">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form></div></div>
+
+  <div class="modal-overlay" id="modalEvent" hidden><div class="modal"><h2 id="modalEventTitle">Nuevo evento</h2><form id="formEvent"><div class="form-group"><label>Titulo *</label><input type="text" id="eventTitle" required maxlength="120" placeholder="Nombre del evento"></div><div class="form-group"><label>Fecha *</label><input type="date" id="eventDate" required></div><div class="form-row"><div class="form-group"><label>Hora inicio</label><input type="time" id="eventStart"></div><div class="form-group"><label>Hora fin</label><input type="time" id="eventEnd"></div></div><div class="form-group"><label>Notas</label><textarea id="eventNotes" rows="2" maxlength="500" placeholder="Detalles..."></textarea></div><div class="form-group"><label>Color</label><div class="color-picker" id="eventColorPicker"><span class="color-dot selected" data-color="#748ffc" style="background:#748ffc"></span><span class="color-dot" data-color="#ff6b6b" style="background:#ff6b6b"></span><span class="color-dot" data-color="#51cf66" style="background:#51cf66"></span><span class="color-dot" data-color="#fcc419" style="background:#fcc419"></span><span class="color-dot" data-color="#cc5de8" style="background:#cc5de8"></span><span class="color-dot" data-color="#22b8cf" style="background:#22b8cf"></span></div></div><div class="form-actions"><button type="button" class="btn btn-secondary" data-close="modalEvent">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form></div></div>
+
+  <div class="modal-overlay" id="modalContact" hidden><div class="modal"><h2 id="modalContactTitle">Nuevo contacto</h2><form id="formContact"><div class="form-group"><label>Nombre *</label><input type="text" id="contactName" required maxlength="100" placeholder="Nombre completo"></div><div class="form-group"><label>Telefono</label><input type="tel" id="contactPhone" maxlength="20" placeholder="+34 600 000 000"></div><div class="form-group"><label>Email</label><input type="email" id="contactEmail" maxlength="100" placeholder="correo@ejemplo.com"></div><div class="form-group"><label>Direccion</label><input type="text" id="contactAddress" maxlength="200" placeholder="Calle, ciudad..."></div><div class="form-group"><label>Notas</label><textarea id="contactNotes" rows="2" maxlength="500" placeholder="Informacion adicional..."></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary" data-close="modalContact">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form></div></div>
+
+  <div class="modal-overlay" id="modalReminder" hidden><div class="modal"><h2 id="modalReminderTitle">Nuevo recordatorio</h2><form id="formReminder"><div class="form-group"><label>Titulo *</label><input type="text" id="reminderTitle" required maxlength="120" placeholder="Recordar que..."></div><div class="form-row"><div class="form-group"><label>Fecha *</label><input type="date" id="reminderDate" required></div><div class="form-group"><label>Hora</label><input type="time" id="reminderTime"></div></div><div class="form-group"><label>Repetir</label><select id="reminderRepeat"><option value="">No repetir</option><option value="daily">Cada dia</option><option value="weekly">Cada semana</option><option value="monthly">Cada mes</option></select></div><div class="form-group"><label>Notas</label><textarea id="reminderNotes" rows="2" maxlength="500" placeholder="Detalles..."></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary" data-close="modalReminder">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form></div></div>
+
+  <div class="modal-overlay" id="confirmOverlay" hidden><div class="modal modal-confirm"><p id="confirmText">Eliminar?</p><div class="form-actions"><button class="btn btn-secondary" id="confirmNo">Cancelar</button><button class="btn btn-danger" id="confirmYes">Eliminar</button></div></div></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
