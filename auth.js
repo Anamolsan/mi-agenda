@@ -35,10 +35,12 @@
     }
   });
 
+  var dataLoaded = false;
   function showApp(user) {
     authScreen.hidden = true;
     appEl.hidden = false;
     if (settingsUserEmail) settingsUserEmail.textContent = user.email;
+    if (!dataLoaded && window.loadData) { dataLoaded = true; window.loadData(user.id); }
   }
 
   function showAuth() {

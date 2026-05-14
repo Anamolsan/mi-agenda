@@ -1,10 +1,9 @@
 (function(){
 'use strict';
-var KEYS={tasks:'agenda_tasks',notes:'agenda_notes',events:'agenda_events',contacts:'agenda_contacts',reminders:'agenda_reminders',diary:'agenda_diary',theme:'agenda_theme',accent:'agenda_accent'};
-function load(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}}
-function save(k,d){localStorage.setItem(k,JSON.stringify(d))}
+var KEYS={theme:'agenda_theme',accent:'agenda_accent'};
 
-var state={tasks:load(KEYS.tasks),notes:load(KEYS.notes),events:load(KEYS.events),contacts:load(KEYS.contacts),reminders:load(KEYS.reminders),diary:load(KEYS.diary),activeSection:'secTareas',editingId:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth(),calSelectedDate:todayStr(),diaryMood:0,diaryRatings:{energy:0,sleep:0,anxiety:0,stress:0,motivation:0},diaryActiveTags:[]};
+var state={tasks:[],notes:[],events:[],contacts:[],reminders:[],diary:[],activeSection:'secTareas',editingId:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth(),calSelectedDate:todayStr(),diaryMood:0,diaryRatings:{energy:0,sleep:0,anxiety:0,stress:0,motivation:0},diaryActiveTags:[]};
+var currentUserId=null;
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
@@ -14,6 +13,15 @@ function fmtShort(s){if(!s)return'';var p=s.split('-');return new Date(+p[0],+p[
 function fmtLong(s){if(!s)return'';var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}
 function isOverdue(ds,ts){if(!ds)return false;return new Date()>new Date(ds+(ts?'T'+ts:'T23:59:59'))}
 function pWeight(p){return{alta:3,media:2,baja:1}[p]||0}
+function or(v,d){return v!==null&&v!==undefined?v:d}
+
+// DB → estado local
+function dbToTask(r){return{id:r.id,title:or(r.title,''),description:or(r.description,''),priority:or(r.priority,'media'),category:or(r.category,''),dueDate:or(r.due_date,''),dueTime:or(r.due_time,''),completed:!!r.completed,createdAt:new Date(r.created_at).getTime()}}
+function dbToNote(r){return{id:r.id,title:or(r.title,''),content:or(r.content,''),color:or(r.color,'#ffffff'),pinned:!!r.pinned,createdAt:new Date(r.created_at).getTime(),updatedAt:new Date(r.updated_at).getTime()}}
+function dbToEvent(r){return{id:r.id,title:or(r.title,''),date:or(r.date,''),startTime:or(r.start_time,''),endTime:or(r.end_time,''),notes:or(r.notes,''),color:or(r.color,'#748ffc'),createdAt:new Date(r.created_at).getTime()}}
+function dbToContact(r){return{id:r.id,name:or(r.name,''),phone:or(r.phone,''),email:or(r.email,''),address:or(r.address,''),notes:or(r.notes,''),createdAt:new Date(r.created_at).getTime()}}
+function dbToReminder(r){return{id:r.id,title:or(r.title,''),date:or(r.date,''),time:or(r.time,''),repeat:or(r.repeat,''),notes:or(r.notes,''),completed:!!r.completed,createdAt:new Date(r.created_at).getTime()}}
+function dbToDiary(r){return{id:r.id,date:or(r.date,''),mood:or(r.mood,0),energy:or(r.energy,0),sleep:or(r.sleep,0),anxiety:or(r.anxiety,0),stress:or(r.stress,0),motivation:or(r.motivation,0),tags:or(r.tags,[]),notes:or(r.notes,''),createdAt:new Date(r.created_at).getTime(),updatedAt:new Date(r.updated_at).getTime()}}
 
 var AVATAR_C=['#748ffc','#ff6b6b','#51cf66','#fcc419','#cc5de8','#22b8cf','#f06595','#ff922b'];
 function avColor(n){var h=0;for(var i=0;i<n.length;i++)h=n.charCodeAt(i)+((h<<5)-h);return AVATAR_C[Math.abs(h)%AVATAR_C.length]}
@@ -131,10 +139,18 @@ function openTaskModal(t){
 }
 formTask.addEventListener('submit',function(e){
   e.preventDefault();
-  var d={title:taskTitle.value.trim(),description:taskDesc.value.trim(),priority:taskPriority.value,category:taskCategory.value.trim(),dueDate:taskDueDate.value,dueTime:taskDueTime.value};
-  if(state.editingId){var t=state.tasks.find(function(x){return x.id===state.editingId});if(t){t.title=d.title;t.description=d.description;t.priority=d.priority;t.category=d.category;t.dueDate=d.dueDate;t.dueTime=d.dueTime}}
-  else{d.id=uid();d.completed=false;d.createdAt=Date.now();state.tasks.unshift(d)}
-  save(KEYS.tasks,state.tasks);closeModal(modalTask);renderTasks();
+  var d={title:taskTitle.value.trim(),description:taskDesc.value.trim(),priority:taskPriority.value,category:taskCategory.value.trim(),due_date:taskDueDate.value||null,due_time:taskDueTime.value||null};
+  if(state.editingId){
+    _sb.from('tasks').update(d).eq('id',state.editingId).then(function(r){
+      if(!r.error){var t=state.tasks.find(function(x){return x.id===state.editingId});if(t){t.title=d.title;t.description=d.description;t.priority=d.priority;t.category=d.category;t.dueDate=d.due_date||'';t.dueTime=d.due_time||''}}
+      closeModal(modalTask);renderTasks();
+    });
+  }else{
+    _sb.from('tasks').insert(Object.assign({},d,{user_id:currentUserId,completed:false})).select().then(function(r){
+      if(!r.error&&r.data&&r.data[0])state.tasks.unshift(dbToTask(r.data[0]));
+      closeModal(modalTask);renderTasks();
+    });
+  }
 });
 function renderTasks(){
   var s=searchTasks.value.toLowerCase().trim(),st=filterStatus.value,pr=filterPriority.value,so=sortTasks.value;
@@ -154,7 +170,21 @@ function renderTasks(){
     return'<div class="task-card priority-'+t.priority+(t.completed?' completed':'')+'">'+'<div class="task-check" data-action="toggleTask" data-id="'+t.id+'">'+SVG_CHK+'</div>'+'<div class="task-body"><div class="task-title">'+esc(t.title)+'</div>'+(t.description?'<div class="task-desc">'+esc(t.description)+'</div>':'')+'<div class="task-meta">'+m+'</div></div>'+'<div class="item-actions"><button class="act-edit" data-action="editTask" data-id="'+t.id+'">'+SVG_EDT+'</button><button class="act-delete" data-action="deleteTask" data-id="'+t.id+'">'+SVG_DEL+'</button></div></div>';
   }).join('');
 }
-taskList.addEventListener('click',function(e){var b=e.target.closest('[data-action]');if(!b)return;var id=b.dataset.id,a=b.dataset.action;if(a==='toggleTask'){var t=state.tasks.find(function(x){return x.id===id});if(t){t.completed=!t.completed;save(KEYS.tasks,state.tasks);renderTasks()}}else if(a==='editTask'){var t=state.tasks.find(function(x){return x.id===id});if(t)openTaskModal(t)}else if(a==='deleteTask'){var t=state.tasks.find(function(x){return x.id===id});showConfirm('Eliminar "'+(t?t.title:'')+'"?',function(){state.tasks=state.tasks.filter(function(x){return x.id!==id});save(KEYS.tasks,state.tasks);renderTasks()})}});
+taskList.addEventListener('click',function(e){
+  var b=e.target.closest('[data-action]');if(!b)return;
+  var id=b.dataset.id,a=b.dataset.action;
+  if(a==='toggleTask'){
+    var t=state.tasks.find(function(x){return x.id===id});
+    if(t){t.completed=!t.completed;_sb.from('tasks').update({completed:t.completed}).eq('id',id).then(function(){renderTasks()})}
+  }else if(a==='editTask'){
+    var t=state.tasks.find(function(x){return x.id===id});if(t)openTaskModal(t)
+  }else if(a==='deleteTask'){
+    var t=state.tasks.find(function(x){return x.id===id});
+    showConfirm('Eliminar "'+(t?t.title:'')+'"?',function(){
+      _sb.from('tasks').delete().eq('id',id).then(function(){state.tasks=state.tasks.filter(function(x){return x.id!==id});renderTasks()})
+    })
+  }
+});
 searchTasks.addEventListener('input',renderTasks);filterStatus.addEventListener('change',renderTasks);filterPriority.addEventListener('change',renderTasks);sortTasks.addEventListener('change',renderTasks);
 
 // NOTES
@@ -164,10 +194,19 @@ function openNoteModal(n){
   openModal(modalNote);noteTitle.focus();
 }
 formNote.addEventListener('submit',function(e){
-  e.preventDefault();var d={title:noteTitle.value.trim(),content:noteContent.value.trim(),color:getCP(noteColorPicker)};
-  if(state.editingId){var n=state.notes.find(function(x){return x.id===state.editingId});if(n){n.title=d.title;n.content=d.content;n.color=d.color;n.updatedAt=Date.now()}}
-  else{state.notes.unshift({id:uid(),pinned:false,createdAt:Date.now(),updatedAt:Date.now(),title:d.title,content:d.content,color:d.color})}
-  save(KEYS.notes,state.notes);closeModal(modalNote);renderNotes();
+  e.preventDefault();
+  var d={title:noteTitle.value.trim(),content:noteContent.value.trim(),color:getCP(noteColorPicker)};
+  if(state.editingId){
+    _sb.from('notes').update(Object.assign({},d,{updated_at:new Date().toISOString()})).eq('id',state.editingId).then(function(r){
+      if(!r.error){var n=state.notes.find(function(x){return x.id===state.editingId});if(n){n.title=d.title;n.content=d.content;n.color=d.color;n.updatedAt=Date.now()}}
+      closeModal(modalNote);renderNotes();
+    });
+  }else{
+    _sb.from('notes').insert({title:d.title,content:d.content,color:d.color,user_id:currentUserId,pinned:false}).select().then(function(r){
+      if(!r.error&&r.data&&r.data[0])state.notes.unshift(dbToNote(r.data[0]));
+      closeModal(modalNote);renderNotes();
+    });
+  }
 });
 function renderNotes(){
   var s=searchNotes.value.toLowerCase().trim();
@@ -176,7 +215,19 @@ function renderNotes(){
   if(!list.length){notesGrid.innerHTML='';emptyNotes.hidden=false;return}emptyNotes.hidden=true;
   notesGrid.innerHTML=list.map(function(n){var d=new Date(n.updatedAt||n.createdAt);var dk=dateStr(d);return'<div class="note-card" style="background:'+n.color+'" data-id="'+n.id+'">'+'<button class="note-pin '+(n.pinned?'pinned':'')+'" data-action="pinNote" data-id="'+n.id+'">'+SVG_PIN+'</button>'+(n.title?'<div class="note-card-title">'+esc(n.title)+'</div>':'')+'<div class="note-card-content">'+esc(n.content)+'</div>'+'<div class="note-card-footer"><span class="note-card-date">'+fmtShort(dk)+'</span><div class="item-actions"><button class="act-edit" data-action="editNote" data-id="'+n.id+'">'+SVG_EDT+'</button><button class="act-delete" data-action="deleteNote" data-id="'+n.id+'">'+SVG_DEL+'</button></div></div></div>'}).join('');
 }
-notesGrid.addEventListener('click',function(e){var b=e.target.closest('[data-action]');if(!b)return;var id=b.dataset.id;if(b.dataset.action==='pinNote'){var n=state.notes.find(function(x){return x.id===id});if(n){n.pinned=!n.pinned;save(KEYS.notes,state.notes);renderNotes()}}else if(b.dataset.action==='editNote'){var n=state.notes.find(function(x){return x.id===id});if(n)openNoteModal(n)}else if(b.dataset.action==='deleteNote'){showConfirm('Eliminar esta nota?',function(){state.notes=state.notes.filter(function(x){return x.id!==id});save(KEYS.notes,state.notes);renderNotes()})}});
+notesGrid.addEventListener('click',function(e){
+  var b=e.target.closest('[data-action]');if(!b)return;var id=b.dataset.id;
+  if(b.dataset.action==='pinNote'){
+    var n=state.notes.find(function(x){return x.id===id});
+    if(n){n.pinned=!n.pinned;_sb.from('notes').update({pinned:n.pinned}).eq('id',id).then(function(){renderNotes()})}
+  }else if(b.dataset.action==='editNote'){
+    var n=state.notes.find(function(x){return x.id===id});if(n)openNoteModal(n)
+  }else if(b.dataset.action==='deleteNote'){
+    showConfirm('Eliminar esta nota?',function(){
+      _sb.from('notes').delete().eq('id',id).then(function(){state.notes=state.notes.filter(function(x){return x.id!==id});renderNotes()})
+    })
+  }
+});
 searchNotes.addEventListener('input',renderNotes);
 
 // CALENDAR
@@ -186,10 +237,19 @@ function openEventModal(ev){
   openModal(modalEvent);eventTitle.focus();
 }
 formEvent.addEventListener('submit',function(e){
-  e.preventDefault();var d={title:eventTitle.value.trim(),date:eventDate.value,startTime:eventStart.value,endTime:eventEnd.value,notes:eventNotes.value.trim(),color:getCP(eventColorPicker)};
-  if(state.editingId){var ev=state.events.find(function(x){return x.id===state.editingId});if(ev){ev.title=d.title;ev.date=d.date;ev.startTime=d.startTime;ev.endTime=d.endTime;ev.notes=d.notes;ev.color=d.color}}
-  else{d.id=uid();d.createdAt=Date.now();state.events.push(d)}
-  save(KEYS.events,state.events);closeModal(modalEvent);renderCalendar();
+  e.preventDefault();
+  var d={title:eventTitle.value.trim(),date:eventDate.value,start_time:eventStart.value||null,end_time:eventEnd.value||null,notes:eventNotes.value.trim(),color:getCP(eventColorPicker)};
+  if(state.editingId){
+    _sb.from('events').update(d).eq('id',state.editingId).then(function(r){
+      if(!r.error){var ev=state.events.find(function(x){return x.id===state.editingId});if(ev){ev.title=d.title;ev.date=d.date;ev.startTime=d.start_time||'';ev.endTime=d.end_time||'';ev.notes=d.notes;ev.color=d.color}}
+      closeModal(modalEvent);renderCalendar();
+    });
+  }else{
+    _sb.from('events').insert(Object.assign({},d,{user_id:currentUserId})).select().then(function(r){
+      if(!r.error&&r.data&&r.data[0])state.events.push(dbToEvent(r.data[0]));
+      closeModal(modalEvent);renderCalendar();
+    });
+  }
 });
 function renderCalendar(){
   calTitle.textContent=MO[state.calMonth]+' '+state.calYear;
@@ -229,7 +289,15 @@ function renderDayItems(){
 calGrid.addEventListener('click',function(e){var c=e.target.closest('.cal-day');if(c&&c.dataset.date){state.calSelectedDate=c.dataset.date;renderCalendar()}});
 calPrev.addEventListener('click',function(){state.calMonth--;if(state.calMonth<0){state.calMonth=11;state.calYear--}renderCalendar()});
 calNext.addEventListener('click',function(){state.calMonth++;if(state.calMonth>11){state.calMonth=0;state.calYear++}renderCalendar()});
-calDayItems.addEventListener('click',function(e){var b=e.target.closest('[data-action]');if(!b)return;var id=b.dataset.id;if(b.dataset.action==='editEvent'){var ev=state.events.find(function(x){return x.id===id});if(ev)openEventModal(ev)}else if(b.dataset.action==='deleteEvent'){showConfirm('Eliminar este evento?',function(){state.events=state.events.filter(function(x){return x.id!==id});save(KEYS.events,state.events);renderCalendar()})}});
+calDayItems.addEventListener('click',function(e){
+  var b=e.target.closest('[data-action]');if(!b)return;var id=b.dataset.id;
+  if(b.dataset.action==='editEvent'){var ev=state.events.find(function(x){return x.id===id});if(ev)openEventModal(ev)}
+  else if(b.dataset.action==='deleteEvent'){
+    showConfirm('Eliminar este evento?',function(){
+      _sb.from('events').delete().eq('id',id).then(function(){state.events=state.events.filter(function(x){return x.id!==id});renderCalendar()})
+    })
+  }
+});
 
 // CONTACTS
 function openContactModal(c){
@@ -238,10 +306,19 @@ function openContactModal(c){
   openModal(modalContact);contactName.focus();
 }
 formContact.addEventListener('submit',function(e){
-  e.preventDefault();var d={name:contactName.value.trim(),phone:contactPhone.value.trim(),email:contactEmail.value.trim(),address:contactAddress.value.trim(),notes:contactNotes.value.trim()};
-  if(state.editingId){var c=state.contacts.find(function(x){return x.id===state.editingId});if(c){c.name=d.name;c.phone=d.phone;c.email=d.email;c.address=d.address;c.notes=d.notes}}
-  else{d.id=uid();d.createdAt=Date.now();state.contacts.push(d)}
-  save(KEYS.contacts,state.contacts);closeModal(modalContact);renderContacts();
+  e.preventDefault();
+  var d={name:contactName.value.trim(),phone:contactPhone.value.trim(),email:contactEmail.value.trim(),address:contactAddress.value.trim(),notes:contactNotes.value.trim()};
+  if(state.editingId){
+    _sb.from('contacts').update(d).eq('id',state.editingId).then(function(r){
+      if(!r.error){var c=state.contacts.find(function(x){return x.id===state.editingId});if(c)Object.assign(c,d)}
+      closeModal(modalContact);renderContacts();
+    });
+  }else{
+    _sb.from('contacts').insert(Object.assign({},d,{user_id:currentUserId})).select().then(function(r){
+      if(!r.error&&r.data&&r.data[0])state.contacts.push(dbToContact(r.data[0]));
+      closeModal(modalContact);renderContacts();
+    });
+  }
 });
 function renderContacts(){
   var s=searchContacts.value.toLowerCase().trim();
@@ -253,7 +330,16 @@ function renderContacts(){
     return'<div class="contact-card"><div class="contact-avatar" style="background:'+avColor(c.name)+'">'+initials(c.name)+'</div><div class="contact-info"><div class="contact-name">'+esc(c.name)+'</div>'+(det?'<div class="contact-detail">'+det+'</div>':'')+(c.address?'<div class="contact-detail">'+esc(c.address)+'</div>':'')+'</div><div class="item-actions"><button class="act-edit" data-action="editContact" data-id="'+c.id+'">'+SVG_EDT+'</button><button class="act-delete" data-action="deleteContact" data-id="'+c.id+'">'+SVG_DEL+'</button></div></div>';
   }).join('');
 }
-contactList.addEventListener('click',function(e){var b=e.target.closest('[data-action]');if(!b)return;var id=b.dataset.id;if(b.dataset.action==='editContact'){var c=state.contacts.find(function(x){return x.id===id});if(c)openContactModal(c)}else if(b.dataset.action==='deleteContact'){var c=state.contacts.find(function(x){return x.id===id});showConfirm('Eliminar "'+(c?c.name:'')+'"?',function(){state.contacts=state.contacts.filter(function(x){return x.id!==id});save(KEYS.contacts,state.contacts);renderContacts()})}});
+contactList.addEventListener('click',function(e){
+  var b=e.target.closest('[data-action]');if(!b)return;var id=b.dataset.id;
+  if(b.dataset.action==='editContact'){var c=state.contacts.find(function(x){return x.id===id});if(c)openContactModal(c)}
+  else if(b.dataset.action==='deleteContact'){
+    var c=state.contacts.find(function(x){return x.id===id});
+    showConfirm('Eliminar "'+(c?c.name:'')+'"?',function(){
+      _sb.from('contacts').delete().eq('id',id).then(function(){state.contacts=state.contacts.filter(function(x){return x.id!==id});renderContacts()})
+    })
+  }
+});
 searchContacts.addEventListener('input',renderContacts);
 
 // REMINDERS
@@ -263,10 +349,19 @@ function openReminderModal(r){
   openModal(modalReminder);reminderTitle.focus();
 }
 formReminder.addEventListener('submit',function(e){
-  e.preventDefault();var d={title:reminderTitle.value.trim(),date:reminderDate.value,time:reminderTime.value,repeat:reminderRepeat.value,notes:reminderNotes.value.trim()};
-  if(state.editingId){var r=state.reminders.find(function(x){return x.id===state.editingId});if(r){r.title=d.title;r.date=d.date;r.time=d.time;r.repeat=d.repeat;r.notes=d.notes}}
-  else{d.id=uid();d.completed=false;d.createdAt=Date.now();state.reminders.push(d)}
-  save(KEYS.reminders,state.reminders);closeModal(modalReminder);renderReminders();
+  e.preventDefault();
+  var d={title:reminderTitle.value.trim(),date:reminderDate.value,time:reminderTime.value||null,repeat:reminderRepeat.value,notes:reminderNotes.value.trim()};
+  if(state.editingId){
+    _sb.from('reminders').update(d).eq('id',state.editingId).then(function(r){
+      if(!r.error){var rm=state.reminders.find(function(x){return x.id===state.editingId});if(rm){rm.title=d.title;rm.date=d.date;rm.time=d.time||'';rm.repeat=d.repeat;rm.notes=d.notes}}
+      closeModal(modalReminder);renderReminders();
+    });
+  }else{
+    _sb.from('reminders').insert(Object.assign({},d,{user_id:currentUserId,completed:false})).select().then(function(r){
+      if(!r.error&&r.data&&r.data[0])state.reminders.push(dbToReminder(r.data[0]));
+      closeModal(modalReminder);renderReminders();
+    });
+  }
 });
 function renderReminders(){
   var f=filterReminders.value;
@@ -278,7 +373,19 @@ function renderReminders(){
     return'<div class="reminder-card'+(r.completed?' completed':'')+(ov?' overdue':'')+'">'+'<div class="reminder-check" data-action="toggleReminder" data-id="'+r.id+'">'+SVG_CHK+'</div>'+'<div class="reminder-body"><div class="reminder-title">'+esc(r.title)+'</div><div class="reminder-when">'+w+(r.repeat?' <span class="reminder-repeat">'+REP_L[r.repeat]+'</span>':'')+'</div>'+(r.notes?'<div class="task-desc">'+esc(r.notes)+'</div>':'')+'</div><div class="item-actions"><button class="act-edit" data-action="editReminder" data-id="'+r.id+'">'+SVG_EDT+'</button><button class="act-delete" data-action="deleteReminder" data-id="'+r.id+'">'+SVG_DEL+'</button></div></div>';
   }).join('');
 }
-reminderList.addEventListener('click',function(e){var b=e.target.closest('[data-action]');if(!b)return;var id=b.dataset.id;if(b.dataset.action==='toggleReminder'){var r=state.reminders.find(function(x){return x.id===id});if(r){r.completed=!r.completed;save(KEYS.reminders,state.reminders);renderReminders()}}else if(b.dataset.action==='editReminder'){var r=state.reminders.find(function(x){return x.id===id});if(r)openReminderModal(r)}else if(b.dataset.action==='deleteReminder'){showConfirm('Eliminar este recordatorio?',function(){state.reminders=state.reminders.filter(function(x){return x.id!==id});save(KEYS.reminders,state.reminders);renderReminders()})}});
+reminderList.addEventListener('click',function(e){
+  var b=e.target.closest('[data-action]');if(!b)return;var id=b.dataset.id;
+  if(b.dataset.action==='toggleReminder'){
+    var r=state.reminders.find(function(x){return x.id===id});
+    if(r){r.completed=!r.completed;_sb.from('reminders').update({completed:r.completed}).eq('id',id).then(function(){renderReminders()})}
+  }else if(b.dataset.action==='editReminder'){
+    var r=state.reminders.find(function(x){return x.id===id});if(r)openReminderModal(r)
+  }else if(b.dataset.action==='deleteReminder'){
+    showConfirm('Eliminar este recordatorio?',function(){
+      _sb.from('reminders').delete().eq('id',id).then(function(){state.reminders=state.reminders.filter(function(x){return x.id!==id});renderReminders()})
+    })
+  }
+});
 filterReminders.addEventListener('change',renderReminders);
 
 // DIARY
@@ -301,10 +408,18 @@ function loadTodayEntry(){
 }
 btnSaveDiary.addEventListener('click',function(){
   if(!state.diaryMood){moodFaces.querySelectorAll('.mood-face').forEach(function(f){f.style.opacity='1'});setTimeout(function(){moodFaces.querySelectorAll('.mood-face').forEach(function(f){if(!f.classList.contains('selected'))f.style.opacity=''})},600);return}
-  var today=todayStr(),ex=state.diary.find(function(e){return e.date===today});
-  var entry={date:today,mood:state.diaryMood,energy:state.diaryRatings.energy,sleep:state.diaryRatings.sleep,anxiety:state.diaryRatings.anxiety,stress:state.diaryRatings.stress,motivation:state.diaryRatings.motivation,tags:state.diaryActiveTags.slice(),notes:diaryNotesEl.value.trim(),updatedAt:Date.now()};
-  if(ex)Object.assign(ex,entry);else{entry.id=uid();entry.createdAt=Date.now();state.diary.unshift(entry)}
-  save(KEYS.diary,state.diary);btnSaveDiary.textContent='Guardado!';setTimeout(function(){btnSaveDiary.textContent='Actualizar entrada de hoy'},1500);renderDiary();
+  var today=todayStr();
+  var row={user_id:currentUserId,date:today,mood:state.diaryMood,energy:state.diaryRatings.energy,sleep:state.diaryRatings.sleep,anxiety:state.diaryRatings.anxiety,stress:state.diaryRatings.stress,motivation:state.diaryRatings.motivation,tags:state.diaryActiveTags.slice(),notes:diaryNotesEl.value.trim(),updated_at:new Date().toISOString()};
+  _sb.from('diary_entries').upsert(row,{onConflict:'user_id,date'}).select().then(function(r){
+    if(!r.error&&r.data&&r.data[0]){
+      var d=dbToDiary(r.data[0]);
+      var idx=state.diary.findIndex(function(e){return e.date===today});
+      if(idx>=0)state.diary[idx]=d;else state.diary.unshift(d);
+      btnSaveDiary.textContent='Guardado!';
+      setTimeout(function(){btnSaveDiary.textContent='Actualizar entrada de hoy'},1500);
+      renderDiary();
+    }
+  });
 });
 function renderDiary(){
   var days=[];for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);days.push(dateStr(d))}
@@ -329,8 +444,34 @@ function renderDiary(){
     return'<div class="diary-entry"><div class="diary-entry-header"><span class="diary-entry-mood">'+MOOD_F[e.mood]+'</span><span class="diary-entry-date">'+fmtLong(e.date)+'</span></div><div class="diary-entry-bars">'+bars+'</div>'+(tags?'<div class="diary-entry-tags">'+tags+'</div>':'')+(e.notes?'<div class="diary-entry-notes">'+esc(e.notes)+'</div>':'')+'<div class="item-actions"><button class="act-delete" data-action="deleteDiary" data-id="'+e.id+'">'+SVG_DEL+'</button></div></div>';
   }).join('');
 }
-diaryHistory.addEventListener('click',function(e){var b=e.target.closest('[data-action="deleteDiary"]');if(!b)return;var id=b.dataset.id;showConfirm('Eliminar esta entrada?',function(){state.diary=state.diary.filter(function(x){return x.id!==id});save(KEYS.diary,state.diary);renderDiary()})});
+diaryHistory.addEventListener('click',function(e){
+  var b=e.target.closest('[data-action="deleteDiary"]');if(!b)return;var id=b.dataset.id;
+  showConfirm('Eliminar esta entrada?',function(){
+    _sb.from('diary_entries').delete().eq('id',id).then(function(){state.diary=state.diary.filter(function(x){return x.id!==id});renderDiary()})
+  })
+});
 
 // INIT
-initSettings();updateGreeting();renderTasks();renderNotes();renderCalendar();renderContacts();renderReminders();loadTodayEntry();renderDiary();
+initSettings();updateGreeting();renderCalendar();
+
+// Carga de datos desde Supabase (llamado por auth.js al iniciar sesión)
+window.loadData=function(userId){
+  currentUserId=userId;
+  Promise.all([
+    _sb.from('tasks').select('*').order('created_at',{ascending:false}),
+    _sb.from('notes').select('*').order('created_at',{ascending:false}),
+    _sb.from('events').select('*'),
+    _sb.from('contacts').select('*').order('name'),
+    _sb.from('reminders').select('*'),
+    _sb.from('diary_entries').select('*').order('date',{ascending:false})
+  ]).then(function(res){
+    state.tasks=(res[0].data||[]).map(dbToTask);
+    state.notes=(res[1].data||[]).map(dbToNote);
+    state.events=(res[2].data||[]).map(dbToEvent);
+    state.contacts=(res[3].data||[]).map(dbToContact);
+    state.reminders=(res[4].data||[]).map(dbToReminder);
+    state.diary=(res[5].data||[]).map(dbToDiary);
+    renderTasks();renderNotes();renderCalendar();renderContacts();renderReminders();loadTodayEntry();renderDiary();
+  });
+};
 })();
