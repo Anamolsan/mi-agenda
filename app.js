@@ -40,13 +40,33 @@ confundido:'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#dbe4f
 asiastasi:'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#e9fac8"/><circle cx="22" cy="27" r="3" fill="#5c940d"/><circle cx="38" cy="27" r="3" fill="#5c940d"/><line x1="21" y1="39" x2="39" y2="39" stroke="#5c940d" stroke-width="3" stroke-linecap="round"/></svg>'
 };
 
+Object.assign(EMOTION_SVG,{
+sorprendido:'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#fff4e6"/><path d="M17 20Q22 16 27 20" stroke="#d9480f" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M33 20Q38 16 43 20" stroke="#d9480f" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="22" cy="27" r="5" fill="#d9480f"/><circle cx="38" cy="27" r="5" fill="#d9480f"/><circle cx="21" cy="26" r="1.8" fill="white"/><circle cx="37" cy="26" r="1.8" fill="white"/><ellipse cx="30" cy="42" rx="7" ry="5.5" fill="#d9480f"/></svg>',
+orgulloso:'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#fff9db"/><path d="M17 22Q22 19 27 22" stroke="#e67700" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M33 20Q38 18 43 21" stroke="#e67700" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M19 27Q22 24 25 27" stroke="#e67700" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M35 27Q38 24 41 27" stroke="#e67700" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M19 36Q30 47 41 36" stroke="#e67700" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="46" cy="20" r="2.5" fill="#ffd43b"/><circle cx="43" cy="13" r="1.5" fill="#ffd43b"/><circle cx="50" cy="14" r="1.5" fill="#ffd43b"/></svg>',
+avergonzado:'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#fff0f6"/><circle cx="22" cy="27" r="3" fill="#c2255c"/><circle cx="38" cy="27" r="3" fill="#c2255c"/><circle cx="15" cy="35" r="7" fill="#f783ac" opacity="0.4"/><circle cx="45" cy="35" r="7" fill="#f783ac" opacity="0.4"/><path d="M23 40Q30 45 37 40" stroke="#c2255c" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>',
+solo:'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#edf2ff"/><circle cx="22" cy="27" r="3.5" fill="#3b5bdb"/><circle cx="38" cy="27" r="3.5" fill="#3b5bdb"/><circle cx="24" cy="26" r="1.5" fill="white"/><circle cx="40" cy="26" r="1.5" fill="white"/><path d="M21 40Q30 34 39 40" stroke="#3b5bdb" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="9" cy="30" r="2" fill="#91a7ff" opacity="0.5"/><circle cx="51" cy="30" r="2" fill="#91a7ff" opacity="0.5"/><circle cx="9" cy="22" r="1.5" fill="#91a7ff" opacity="0.4"/></svg>',
+celoso:'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#ebfbee"/><path d="M17 23Q22 27 27 23" stroke="#2f9e44" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M33 23Q38 27 43 23" stroke="#2f9e44" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="22" cy="28" r="3.5" fill="#2f9e44"/><circle cx="38" cy="28" r="3.5" fill="#2f9e44"/><circle cx="20" cy="27" r="1.5" fill="white"/><circle cx="36" cy="27" r="1.5" fill="white"/><path d="M22 40Q30 36 38 40" stroke="#2f9e44" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>',
+aburrido:'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#f8f9fa"/><circle cx="22" cy="28" r="4" fill="#495057"/><circle cx="38" cy="28" r="4" fill="#495057"/><path d="M18 28Q22 23 26 28" fill="#dee2e6"/><path d="M34 28Q38 23 42 28" fill="#dee2e6"/><path d="M22 39Q30 37 38 39" stroke="#495057" stroke-width="2.5" fill="none" stroke-linecap="round"/><text x="43" y="20" font-size="9" fill="#adb5bd" font-family="sans-serif">z</text><text x="46" y="13" font-size="11" fill="#ced4da" font-family="sans-serif">z</text></svg>'
+});
+
+var MOOD_SVG=['',
+'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#ffe3e3"/><circle cx="22" cy="25" r="3.5" fill="#c92a2a"/><circle cx="38" cy="25" r="3.5" fill="#c92a2a"/><path d="M18 42Q30 30 42 42" stroke="#c92a2a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M21 29Q19 33 17 37" stroke="#74c0fc" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M39 29Q37 33 35 37" stroke="#74c0fc" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>',
+'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#fff4e6"/><circle cx="22" cy="26" r="3" fill="#d9480f"/><circle cx="38" cy="26" r="3" fill="#d9480f"/><path d="M20 40Q30 33 40 40" stroke="#d9480f" stroke-width="3" fill="none" stroke-linecap="round"/></svg>',
+'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#fff9db"/><circle cx="22" cy="27" r="3" fill="#e67700"/><circle cx="38" cy="27" r="3" fill="#e67700"/><line x1="21" y1="38" x2="39" y2="38" stroke="#e67700" stroke-width="3" stroke-linecap="round"/></svg>',
+'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#e9fac8"/><path d="M20 27Q22 24 24 27" stroke="#5c940d" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M36 27Q38 24 40 27" stroke="#5c940d" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M21 37Q30 44 39 37" stroke="#5c940d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>',
+'<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#d3f9d8"/><path d="M21 27Q23 23 25 27" stroke="#2b8a3e" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M35 27Q37 23 39 27" stroke="#2b8a3e" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M18 36Q30 48 42 36" stroke="#2b8a3e" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="19" cy="36" r="5" fill="#ff8787" opacity="0.3"/><circle cx="41" cy="36" r="5" fill="#ff8787" opacity="0.3"/></svg>'
+];
+
 var EMOTIONS=[
   {id:'feliz',l:'Feliz',e:'😄',c:'#51cf66'},{id:'triste',l:'Triste',e:'😢',c:'#74c0fc'},
   {id:'enfadado',l:'Enfadado',e:'😠',c:'#ff6b6b'},{id:'asustado',l:'Asustado',e:'😨',c:'#9775fa'},
   {id:'nervioso',l:'Nervioso',e:'😰',c:'#fcc419'},{id:'cansado',l:'Cansado',e:'😴',c:'#adb5bd'},
   {id:'emocionado',l:'Emocionado',e:'🤩',c:'#ff922b'},{id:'querido',l:'Querido',e:'🥰',c:'#f06595'},
   {id:'tranquilo',l:'Tranquilo',e:'😌',c:'#22b8cf'},{id:'frustrado',l:'Frustrado',e:'😤',c:'#ff8787'},
-  {id:'confundido',l:'Confundido',e:'😕',c:'#748ffc'},{id:'asiastasi',l:'Así así',e:'😐',c:'#a9e34b'}
+  {id:'confundido',l:'Confundido',e:'😕',c:'#748ffc'},{id:'asiastasi',l:'Así así',e:'😐',c:'#a9e34b'},
+  {id:'sorprendido',l:'Sorprendido',e:'😲',c:'#ffa94d'},{id:'orgulloso',l:'Orgulloso',e:'🦁',c:'#ffd43b'},
+  {id:'avergonzado',l:'Avergonzado',e:'😳',c:'#f783ac'},{id:'solo',l:'Solo',e:'🫂',c:'#91a7ff'},
+  {id:'celoso',l:'Celoso',e:'😒',c:'#69db7c'},{id:'aburrido',l:'Aburrido',e:'😑',c:'#ced4da'}
 ];
 function getEmotion(id){return EMOTIONS.find(function(em){return em.id===id})||EMOTIONS[0]}
 
@@ -456,7 +476,7 @@ function renderDiary(){
   updateStreak();
   var days=[];for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);days.push(dateStr(d))}
   var em={};state.diary.forEach(function(e){em[e.date]=e});var has=false;
-  diaryWeek.innerHTML=days.map(function(ds){var d=new Date(ds+'T12:00:00');var wd=(d.getDay()+6)%7;var e=em[ds];if(e)has=true;return'<div class="diary-week-day"><div class="diary-week-day-label">'+WD[wd]+'</div><div class="diary-week-day-num">'+d.getDate()+'</div><div class="diary-week-day-mood'+(e?'':' empty')+'">'+(e?MOOD_F[e.mood]:'-')+'</div></div>'}).join('');
+  diaryWeek.innerHTML=days.map(function(ds){var d=new Date(ds+'T12:00:00');var wd=(d.getDay()+6)%7;var e=em[ds];if(e)has=true;return'<div class="diary-week-day"><div class="diary-week-day-label">'+WD[wd]+'</div><div class="diary-week-day-num">'+d.getDate()+'</div><div class="diary-week-day-mood'+(e?'':' empty')+'">'+(e?MOOD_SVG[e.mood]:'-')+'</div></div>'}).join('');
   if(!has){diarySummary.hidden=true}else{
     diarySummary.hidden=false;var we=days.map(function(ds){return em[ds]}).filter(Boolean);
     var fs=['energy','sleep','anxiety','stress','motivation'],ms=0,su={},co={};
@@ -473,7 +493,7 @@ function renderDiary(){
   diaryHistory.innerHTML=list.map(function(e){
     var bars=['energy','sleep','anxiety','stress','motivation'].map(function(f){var v=e[f]||0;return'<div class="diary-bar"><span>'+RAT_L[f].substring(0,3)+'</span><div class="diary-bar-track"><div class="diary-bar-fill" style="width:'+(v/5*100)+'%;background:'+BAR_C[f]+'"></div></div><span>'+v+'</span></div>'}).join('');
     var tags=(e.tags||[]).map(function(t){return'<span class="diary-entry-tag">'+esc(t)+'</span>'}).join('');
-    return'<div class="diary-entry"><div class="diary-entry-header"><span class="diary-entry-mood">'+MOOD_F[e.mood]+'</span><span class="diary-entry-date">'+fmtLong(e.date)+'</span></div><div class="diary-entry-bars">'+bars+'</div>'+(tags?'<div class="diary-entry-tags">'+tags+'</div>':'')+(e.notes?'<div class="diary-entry-notes">'+esc(e.notes)+'</div>':'')+'<div class="item-actions"><button class="act-delete" data-action="deleteDiary" data-id="'+e.id+'">'+SVG_DEL+'</button></div></div>';
+    return'<div class="diary-entry"><div class="diary-entry-header"><span class="diary-entry-mood">'+MOOD_SVG[e.mood]+'</span><span class="diary-entry-date">'+fmtLong(e.date)+'</span></div><div class="diary-entry-bars">'+bars+'</div>'+(tags?'<div class="diary-entry-tags">'+tags+'</div>':'')+(e.notes?'<div class="diary-entry-notes">'+esc(e.notes)+'</div>':'')+'<div class="item-actions"><button class="act-delete" data-action="deleteDiary" data-id="'+e.id+'">'+SVG_DEL+'</button></div></div>';
   }).join('');
 }
 diaryHistory.addEventListener('click',function(e){
@@ -557,7 +577,7 @@ function renderChildren(){
     var moods=state.childMoods.filter(function(m){return m.childId===c.id&&m.date===todayStr()});
     var last=moods[0];
     var badge=last
-      ?'<span class="child-mood-badge" style="background:'+getEmotion(last.emotion).c+'25;color:'+getEmotion(last.emotion).c+'">'+getEmotion(last.emotion).e+' '+getEmotion(last.emotion).l+'</span>'
+      ?'<span class="child-mood-badge" style="background:'+getEmotion(last.emotion).c+'25;color:'+getEmotion(last.emotion).c+'"><span class="badge-svgface">'+(EMOTION_SVG[last.emotion]||getEmotion(last.emotion).e)+'</span> '+getEmotion(last.emotion).l+'</span>'
       :'<span class="child-no-mood">Sin registro hoy</span>';
     return'<div class="child-card">'
       +'<div class="child-avatar" style="background:'+c.avatarColor+'">'+initials(c.name)+'</div>'
@@ -631,7 +651,7 @@ emotionsGridEl.addEventListener('click',function(e){
   var eid=b.dataset.eid,em=getEmotion(eid);
   _sb.from('child_moods').insert({child_id:activeChildForMood,user_id:currentUserId,emotion:eid,emotion_label:em.l,logged_at:todayStr()}).select().then(function(r){
     if(!r.error&&r.data&&r.data[0])state.childMoods.unshift(dbToChildMood(r.data[0]));
-    savedEmojiEl.textContent=em.e;
+    savedEmojiEl.innerHTML=EMOTION_SVG[em.id]||em.e;
     emotionsGridEl.hidden=true;
     childMoodSavedEl.hidden=false;
     renderChildren();
@@ -651,13 +671,13 @@ function openChildHistoryOverlay(childId){
   var strip=days.map(function(ds){
     var m=byDate[ds];var d=new Date(ds+'T12:00:00');
     return'<div class="hist-day" title="'+fmtShort(ds)+'">'
-      +'<span class="hist-emoji">'+(m?getEmotion(m.emotion).e:'·')+'</span>'
+      +'<span class="hist-emoji">'+(m?(EMOTION_SVG[m.emotion]||getEmotion(m.emotion).e):'·')+'</span>'
       +'<span class="hist-num">'+d.getDate()+'</span></div>';
   }).join('');
   var list=moods.slice(0,30).map(function(m){
     var em=getEmotion(m.emotion);
     return'<div class="hist-entry">'
-      +'<span class="hist-entry-em" style="background:'+em.c+'20">'+em.e+'</span>'
+      +'<span class="hist-entry-em" style="background:'+em.c+'20">'+(EMOTION_SVG[em.id]||em.e)+'</span>'
       +'<div class="hist-entry-info"><div class="hist-entry-label">'+em.l+'</div>'
       +'<div class="hist-entry-date">'+fmtLong(m.date)+'</div>'
       +(m.note?'<div class="hist-entry-note">'+esc(m.note)+'</div>':'')

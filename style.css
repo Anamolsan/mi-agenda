@@ -409,3 +409,17 @@ body{
 .hist-entry-date{font-size:.75rem;color:var(--text-secondary);margin-top:2px}
 .hist-entry-note{font-size:.78rem;color:var(--text-secondary);margin-top:4px;font-style:italic}
 .setting-email{font-size:.72rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* SVG FACES SIZING */
+.mood-face svg{width:36px;height:36px;display:block}
+.diary-week-day-mood{display:flex;align-items:center;justify-content:center;min-height:22px}
+.diary-week-day-mood svg{width:22px;height:22px;display:block}
+.diary-entry-mood{display:flex;align-items:center}
+.diary-entry-mood svg{width:36px;height:36px;display:block;flex-shrink:0}
+.breathe-opt-icon svg{width:36px;height:36px;display:block}
+.sound-icon svg{width:30px;height:30px;display:block}
+.child-saved-emoji svg{width:80px;height:80px;display:block;margin:0 auto}
+.hist-emoji svg{width:22px;height:22px;display:block;margin:0 auto}
+.hist-entry-em svg{width:30px;height:30px;display:block}
+.badge-svgface{display:inline-flex;align-items:center;vertical-align:middle;width:16px;height:16px;margin-right:2px}
+.badge-svgface svg{width:16px;height:16px;display:block}
