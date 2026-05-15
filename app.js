@@ -2,7 +2,7 @@
 'use strict';
 var KEYS={theme:'agenda_theme',accent:'agenda_accent'};
 
-var state={tasks:[],notes:[],events:[],contacts:[],reminders:[],diary:[],activeSection:'secTareas',editingId:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth(),calSelectedDate:todayStr(),diaryMood:0,diaryRatings:{energy:0,sleep:0,anxiety:0,stress:0,motivation:0},diaryActiveTags:[]};
+var state={tasks:[],notes:[],events:[],contacts:[],reminders:[],diary:[],children:[],childMoods:[],activeSection:'secTareas',editingId:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth(),calSelectedDate:todayStr(),diaryMood:0,diaryRatings:{energy:0,sleep:0,anxiety:0,stress:0,motivation:0},diaryActiveTags:[]};
 var currentUserId=null;
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
@@ -22,6 +22,18 @@ function dbToEvent(r){return{id:r.id,title:or(r.title,''),date:or(r.date,''),sta
 function dbToContact(r){return{id:r.id,name:or(r.name,''),phone:or(r.phone,''),email:or(r.email,''),address:or(r.address,''),notes:or(r.notes,''),createdAt:new Date(r.created_at).getTime()}}
 function dbToReminder(r){return{id:r.id,title:or(r.title,''),date:or(r.date,''),time:or(r.time,''),repeat:or(r.repeat,''),notes:or(r.notes,''),completed:!!r.completed,createdAt:new Date(r.created_at).getTime()}}
 function dbToDiary(r){return{id:r.id,date:or(r.date,''),mood:or(r.mood,0),energy:or(r.energy,0),sleep:or(r.sleep,0),anxiety:or(r.anxiety,0),stress:or(r.stress,0),motivation:or(r.motivation,0),tags:or(r.tags,[]),notes:or(r.notes,''),createdAt:new Date(r.created_at).getTime(),updatedAt:new Date(r.updated_at).getTime()}}
+function dbToChild(r){return{id:r.id,name:or(r.name,''),avatarColor:or(r.avatar_color,'#748ffc'),createdAt:new Date(r.created_at).getTime()}}
+function dbToChildMood(r){return{id:r.id,childId:r.child_id,emotion:r.emotion,label:r.emotion_label,note:or(r.note,''),date:r.logged_at,createdAt:new Date(r.created_at).getTime()}}
+
+var EMOTIONS=[
+  {id:'feliz',l:'Feliz',e:'😄',c:'#51cf66'},{id:'triste',l:'Triste',e:'😢',c:'#74c0fc'},
+  {id:'enfadado',l:'Enfadado',e:'😠',c:'#ff6b6b'},{id:'asustado',l:'Asustado',e:'😨',c:'#9775fa'},
+  {id:'nervioso',l:'Nervioso',e:'😰',c:'#fcc419'},{id:'cansado',l:'Cansado',e:'😴',c:'#adb5bd'},
+  {id:'emocionado',l:'Emocionado',e:'🤩',c:'#ff922b'},{id:'querido',l:'Querido',e:'🥰',c:'#f06595'},
+  {id:'tranquilo',l:'Tranquilo',e:'😌',c:'#22b8cf'},{id:'frustrado',l:'Frustrado',e:'😤',c:'#ff8787'},
+  {id:'confundido',l:'Confundido',e:'😕',c:'#748ffc'},{id:'asiastasi',l:'Así así',e:'😐',c:'#a9e34b'}
+];
+function getEmotion(id){return EMOTIONS.find(function(em){return em.id===id})||EMOTIONS[0]}
 
 var AVATAR_C=['#748ffc','#ff6b6b','#51cf66','#fcc419','#cc5de8','#22b8cf','#f06595','#ff922b'];
 function avColor(n){var h=0;for(var i=0;i<n.length;i++)h=n.charCodeAt(i)+((h<<5)-h);return AVATAR_C[Math.abs(h)%AVATAR_C.length]}
@@ -38,7 +50,7 @@ var PRI_C={alta:'#ff6b6b',media:'#fcc419',baja:'#51cf66'};
 
 var $=function(id){return document.getElementById(id)};
 var greeting=$('greeting'),headerDate=$('headerDate');
-var sections={secTareas:$('secTareas'),secNotas:$('secNotas'),secCalendario:$('secCalendario'),secContactos:$('secContactos'),secRecordatorios:$('secRecordatorios'),secDiario:$('secDiario')};
+var sections={secTareas:$('secTareas'),secNotas:$('secNotas'),secCalendario:$('secCalendario'),secContactos:$('secContactos'),secRecordatorios:$('secRecordatorios'),secDiario:$('secDiario'),secFamilia:$('secFamilia')};
 var taskList=$('taskList'),emptyTasks=$('emptyTasks'),emptyTasksText=$('emptyTasksText');
 var searchTasks=$('searchTasks'),filterStatus=$('filterStatus'),filterPriority=$('filterPriority'),sortTasks=$('sortTasks');
 var modalTask=$('modalTask'),modalTaskTitle=$('modalTaskTitle'),formTask=$('formTask');
@@ -125,6 +137,7 @@ fab.addEventListener('click',function(){
   else if(s==='secCalendario')openEventModal(null);
   else if(s==='secContactos')openContactModal(null);
   else if(s==='secRecordatorios')openReminderModal(null);
+  else if(s==='secFamilia')openChildModal(null);
 });
 
 var SVG_CHK='<svg viewBox="0 0 24 24" width="14" height="14"><polyline points="4,12 9,17 20,6" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -513,6 +526,135 @@ document.querySelectorAll('.sound-btn').forEach(function(b){
 var volSlider=$('soundsVolume');
 if(volSlider){volSlider.addEventListener('input',function(){if(sndMaster)sndMaster.gain.value=parseFloat(volSlider.value)})}
 
+// FAMILIA
+var childListEl=$('childList'),emptyChildrenEl=$('emptyChildren');
+var childMoodOverlayEl=$('childMoodOverlay'),childMoodChildNameEl=$('childMoodChildName');
+var emotionsGridEl=$('emotionsGrid'),childMoodSavedEl=$('childMoodSaved'),savedEmojiEl=$('savedEmoji');
+var childHistoryOverlayEl=$('childHistoryOverlay'),childHistoryNameEl=$('childHistoryName'),childHistoryContentEl=$('childHistoryContent');
+var modalChildEl=$('modalChild'),formChildEl=$('formChild'),childNameInputEl=$('childNameInput');
+var activeChildForMood=null;
+var CHILD_COLORS=['#748ffc','#ff6b6b','#51cf66','#fcc419','#cc5de8','#22b8cf','#f06595','#ff922b'];
+
+function renderChildren(){
+  if(!state.children.length){childListEl.innerHTML='';emptyChildrenEl.hidden=false;return}
+  emptyChildrenEl.hidden=true;
+  childListEl.innerHTML=state.children.map(function(c){
+    var moods=state.childMoods.filter(function(m){return m.childId===c.id&&m.date===todayStr()});
+    var last=moods[0];
+    var badge=last
+      ?'<span class="child-mood-badge" style="background:'+getEmotion(last.emotion).c+'25;color:'+getEmotion(last.emotion).c+'">'+getEmotion(last.emotion).e+' '+getEmotion(last.emotion).l+'</span>'
+      :'<span class="child-no-mood">Sin registro hoy</span>';
+    return'<div class="child-card">'
+      +'<div class="child-avatar" style="background:'+c.avatarColor+'">'+initials(c.name)+'</div>'
+      +'<div class="child-info"><div class="child-name">'+esc(c.name)+'</div>'+badge+'</div>'
+      +'<div class="child-btns">'
+      +'<button class="btn btn-primary child-feel-btn" data-action="openMood" data-id="'+c.id+'">¿Cómo te sientes?</button>'
+      +'<button class="act-edit" data-action="historyChild" data-id="'+c.id+'" title="Ver historial"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></button>'
+      +'<button class="act-edit" data-action="editChild" data-id="'+c.id+'">'+SVG_EDT+'</button>'
+      +'<button class="act-delete" data-action="deleteChild" data-id="'+c.id+'">'+SVG_DEL+'</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+childListEl.addEventListener('click',function(e){
+  var b=e.target.closest('[data-action]');if(!b)return;
+  var id=b.dataset.id,a=b.dataset.action;
+  if(a==='openMood'){openMoodOverlay(id)}
+  else if(a==='historyChild'){openChildHistoryOverlay(id)}
+  else if(a==='editChild'){var c=state.children.find(function(x){return x.id===id});if(c)openChildModal(c)}
+  else if(a==='deleteChild'){
+    var c=state.children.find(function(x){return x.id===id});
+    showConfirm('Eliminar a '+(c?esc(c.name):'')+' y todos sus registros?',function(){
+      _sb.from('child_profiles').delete().eq('id',id).then(function(){
+        state.children=state.children.filter(function(x){return x.id!==id});
+        state.childMoods=state.childMoods.filter(function(x){return x.childId!==id});
+        renderChildren();
+      });
+    });
+  }
+});
+
+function openChildModal(c){
+  if(c){state.editingId=c.id;$('modalChildTitle').textContent='Editar hijo/a';childNameInputEl.value=c.name}
+  else{state.editingId=null;$('modalChildTitle').textContent='Añadir hijo/a';formChildEl.reset()}
+  openModal(modalChildEl);childNameInputEl.focus();
+}
+formChildEl.addEventListener('submit',function(e){
+  e.preventDefault();
+  var name=childNameInputEl.value.trim();
+  if(state.editingId){
+    _sb.from('child_profiles').update({name:name}).eq('id',state.editingId).then(function(r){
+      if(!r.error){var c=state.children.find(function(x){return x.id===state.editingId});if(c)c.name=name}
+      closeModal(modalChildEl);renderChildren();
+    });
+  }else{
+    var color=CHILD_COLORS[state.children.length%CHILD_COLORS.length];
+    _sb.from('child_profiles').insert({user_id:currentUserId,name:name,avatar_color:color}).select().then(function(r){
+      if(!r.error&&r.data&&r.data[0])state.children.push(dbToChild(r.data[0]));
+      closeModal(modalChildEl);renderChildren();
+    });
+  }
+});
+
+function openMoodOverlay(childId){
+  var c=state.children.find(function(x){return x.id===childId});if(!c)return;
+  activeChildForMood=childId;
+  childMoodChildNameEl.textContent=c.name+'?';
+  childMoodSavedEl.hidden=true;
+  emotionsGridEl.hidden=false;
+  emotionsGridEl.innerHTML=EMOTIONS.map(function(em){
+    return'<button class="emotion-card" data-eid="'+em.id+'" style="--em-c:'+em.c+'">'
+      +'<span class="emotion-card-emoji">'+em.e+'</span>'
+      +'<span class="emotion-card-label">'+em.l+'</span>'
+      +'</button>';
+  }).join('');
+  childMoodOverlayEl.hidden=false;
+  document.body.style.overflow='hidden';
+}
+emotionsGridEl.addEventListener('click',function(e){
+  var b=e.target.closest('.emotion-card');if(!b||!activeChildForMood)return;
+  var eid=b.dataset.eid,em=getEmotion(eid);
+  _sb.from('child_moods').insert({child_id:activeChildForMood,user_id:currentUserId,emotion:eid,emotion_label:em.l,logged_at:todayStr()}).select().then(function(r){
+    if(!r.error&&r.data&&r.data[0])state.childMoods.unshift(dbToChildMood(r.data[0]));
+    savedEmojiEl.textContent=em.e;
+    emotionsGridEl.hidden=true;
+    childMoodSavedEl.hidden=false;
+    renderChildren();
+  });
+});
+$('childMoodSavedClose').addEventListener('click',closeMoodOverlay);
+$('childMoodClose').addEventListener('click',closeMoodOverlay);
+function closeMoodOverlay(){activeChildForMood=null;childMoodOverlayEl.hidden=true;document.body.style.overflow=''}
+
+function openChildHistoryOverlay(childId){
+  var c=state.children.find(function(x){return x.id===childId});if(!c)return;
+  childHistoryNameEl.textContent=c.name;
+  var moods=state.childMoods.filter(function(m){return m.childId===childId});
+  moods.sort(function(a,b){return b.date.localeCompare(a.date)||b.createdAt-a.createdAt});
+  var days=[];for(var i=13;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);days.push(dateStr(d))}
+  var byDate={};moods.forEach(function(m){if(!byDate[m.date])byDate[m.date]=m});
+  var strip=days.map(function(ds){
+    var m=byDate[ds];var d=new Date(ds+'T12:00:00');
+    return'<div class="hist-day" title="'+fmtShort(ds)+'">'
+      +'<span class="hist-emoji">'+(m?getEmotion(m.emotion).e:'·')+'</span>'
+      +'<span class="hist-num">'+d.getDate()+'</span></div>';
+  }).join('');
+  var list=moods.slice(0,30).map(function(m){
+    var em=getEmotion(m.emotion);
+    return'<div class="hist-entry">'
+      +'<span class="hist-entry-em" style="background:'+em.c+'20">'+em.e+'</span>'
+      +'<div class="hist-entry-info"><div class="hist-entry-label">'+em.l+'</div>'
+      +'<div class="hist-entry-date">'+fmtLong(m.date)+'</div>'
+      +(m.note?'<div class="hist-entry-note">'+esc(m.note)+'</div>':'')
+      +'</div></div>';
+  }).join('');
+  childHistoryContentEl.innerHTML='<div class="hist-strip">'+strip+'</div>'
+    +(list||'<p style="text-align:center;color:var(--text-secondary);padding:20px">Sin registros aún</p>');
+  childHistoryOverlayEl.hidden=false;
+  document.body.style.overflow='hidden';
+}
+$('childHistoryClose').addEventListener('click',function(){childHistoryOverlayEl.hidden=true;document.body.style.overflow=''});
+
 // BREATHING EXERCISES
 var BREATHE={
   calm:{name:'Calma 4-7-8',phases:[{t:'Inhala',d:4},{t:'Aguanta',d:7},{t:'Exhala',d:8}],rounds:4,color:'#748ffc'},
@@ -632,7 +774,9 @@ window.loadData=function(userId){
     _sb.from('events').select('*'),
     _sb.from('contacts').select('*').order('name'),
     _sb.from('reminders').select('*'),
-    _sb.from('diary_entries').select('*').order('date',{ascending:false})
+    _sb.from('diary_entries').select('*').order('date',{ascending:false}),
+    _sb.from('child_profiles').select('*').order('created_at'),
+    _sb.from('child_moods').select('*').order('created_at',{ascending:false})
   ]).then(function(res){
     state.tasks=(res[0].data||[]).map(dbToTask);
     state.notes=(res[1].data||[]).map(dbToNote);
@@ -640,7 +784,9 @@ window.loadData=function(userId){
     state.contacts=(res[3].data||[]).map(dbToContact);
     state.reminders=(res[4].data||[]).map(dbToReminder);
     state.diary=(res[5].data||[]).map(dbToDiary);
-    renderTasks();renderNotes();renderCalendar();renderContacts();renderReminders();loadTodayEntry();renderDiary();updateStreak();
+    state.children=(res[6].data||[]).map(dbToChild);
+    state.childMoods=(res[7].data||[]).map(dbToChildMood);
+    renderTasks();renderNotes();renderCalendar();renderContacts();renderReminders();loadTodayEntry();renderDiary();updateStreak();renderChildren();
   });
 };
 })();

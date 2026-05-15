@@ -286,6 +286,17 @@
       </div>
     </section>
 
+    <!-- FAMILIA -->
+    <section class="section" id="secFamilia" hidden>
+      <p class="family-intro">Registra cómo se sienten tus hijos cada día</p>
+      <div id="childList"></div>
+      <div class="empty-state" id="emptyChildren" hidden>
+        <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" opacity="0.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <p>Añade a tu primer hijo/a</p>
+        <p style="font-size:.78rem;color:var(--text-secondary);margin-top:4px">Pulsa el botón + para empezar</p>
+      </div>
+    </section>
+
     <!-- FAB -->
     <button class="fab" id="fab" title="Nuevo">
       <svg viewBox="0 0 24 24" width="26" height="26"><line x1="12" y1="5" x2="12" y2="19" stroke="white" stroke-width="2.5" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
@@ -298,8 +309,31 @@
       <button class="nav-btn" data-section="secCalendario"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Agenda</span></button>
       <button class="nav-btn" data-section="secContactos"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Contactos</span></button>
       <button class="nav-btn" data-section="secRecordatorios"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Alertas</span></button>
+      <button class="nav-btn" data-section="secFamilia"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg><span>Familia</span></button>
       <button class="nav-btn" data-section="secDiario"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="2.5"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="2.5"/></svg><span>Bienestar</span></button>
     </nav>
+  </div>
+
+  <!-- CHILD MOOD OVERLAY -->
+  <div class="child-overlay" id="childMoodOverlay" hidden>
+    <button class="child-overlay-close" id="childMoodClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="child-overlay-header">
+      <p class="child-overlay-ask">¿Cómo te sientes hoy,</p>
+      <h2 class="child-overlay-name" id="childMoodChildName"></h2>
+    </div>
+    <div class="emotions-grid" id="emotionsGrid"></div>
+    <div class="child-mood-saved" id="childMoodSaved" hidden>
+      <div class="child-saved-emoji" id="savedEmoji"></div>
+      <p class="child-saved-text">¡Guardado!</p>
+      <button class="btn btn-primary" id="childMoodSavedClose" style="min-width:140px;margin-top:8px">Volver</button>
+    </div>
+  </div>
+
+  <!-- CHILD HISTORY OVERLAY -->
+  <div class="child-overlay" id="childHistoryOverlay" hidden>
+    <button class="child-overlay-close" id="childHistoryClose"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <h2 class="child-overlay-name" id="childHistoryName" style="margin-bottom:20px"></h2>
+    <div class="child-history-content" id="childHistoryContent"></div>
   </div>
 
   <!-- BREATHING OVERLAY -->
@@ -333,6 +367,8 @@
   <div class="modal-overlay" id="modalContact" hidden><div class="modal"><h2 id="modalContactTitle">Nuevo contacto</h2><form id="formContact"><div class="form-group"><label>Nombre *</label><input type="text" id="contactName" required maxlength="100" placeholder="Nombre completo"></div><div class="form-group"><label>Telefono</label><input type="tel" id="contactPhone" maxlength="20" placeholder="+34 600 000 000"></div><div class="form-group"><label>Email</label><input type="email" id="contactEmail" maxlength="100" placeholder="correo@ejemplo.com"></div><div class="form-group"><label>Direccion</label><input type="text" id="contactAddress" maxlength="200" placeholder="Calle, ciudad..."></div><div class="form-group"><label>Notas</label><textarea id="contactNotes" rows="2" maxlength="500" placeholder="Informacion adicional..."></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary" data-close="modalContact">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form></div></div>
 
   <div class="modal-overlay" id="modalReminder" hidden><div class="modal"><h2 id="modalReminderTitle">Nuevo recordatorio</h2><form id="formReminder"><div class="form-group"><label>Titulo *</label><input type="text" id="reminderTitle" required maxlength="120" placeholder="Recordar que..."></div><div class="form-row"><div class="form-group"><label>Fecha *</label><input type="date" id="reminderDate" required></div><div class="form-group"><label>Hora</label><input type="time" id="reminderTime"></div></div><div class="form-group"><label>Repetir</label><select id="reminderRepeat"><option value="">No repetir</option><option value="daily">Cada dia</option><option value="weekly">Cada semana</option><option value="monthly">Cada mes</option></select></div><div class="form-group"><label>Notas</label><textarea id="reminderNotes" rows="2" maxlength="500" placeholder="Detalles..."></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary" data-close="modalReminder">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form></div></div>
+
+  <div class="modal-overlay" id="modalChild" hidden><div class="modal"><h2 id="modalChildTitle">Añadir hijo/a</h2><form id="formChild"><div class="form-group"><label>Nombre *</label><input type="text" id="childNameInput" required maxlength="50" placeholder="Nombre del niño/a"></div><div class="form-actions"><button type="button" class="btn btn-secondary" data-close="modalChild">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form></div></div>
 
   <div class="modal-overlay" id="confirmOverlay" hidden><div class="modal modal-confirm"><p id="confirmText">Eliminar?</p><div class="form-actions"><button class="btn btn-secondary" id="confirmNo">Cancelar</button><button class="btn btn-danger" id="confirmYes">Eliminar</button></div></div></div>
 
