@@ -59,6 +59,9 @@ var modalReminder=$('modalReminder'),modalReminderTitle=$('modalReminderTitle'),
 var reminderTitle=$('reminderTitle'),reminderDate=$('reminderDate'),reminderTime=$('reminderTime'),reminderRepeat=$('reminderRepeat'),reminderNotes=$('reminderNotes');
 var moodFaces=$('moodFaces'),diaryTags=$('diaryTags'),diaryNotesEl=$('diaryNotes'),btnSaveDiary=$('btnSaveDiary');
 var diaryWeek=$('diaryWeek'),diaryAverages=$('diaryAverages'),diaryHistory=$('diaryHistory'),emptyDiary=$('emptyDiary'),diarySummary=$('diarySummary');
+var breatheOverlayEl=$('breatheOverlay'),breatheTitleEl=$('breatheTitle'),breathePhaseEl=$('breathePhase');
+var breatheTimerEl=$('breatheTimerEl'),breatheRoundInfoEl=$('breatheRoundInfo'),breatheInstructionEl=$('breatheInstruction');
+var breatheStartBtn=$('breatheStartBtn'),breatheRingEl=$('breatheRing');
 var settingsBtn=$('settingsBtn'),settingsPanel=$('settingsPanel'),themeToggle=$('themeToggle'),accentPicker=$('accentPicker');
 var fab=$('fab'),confirmOverlay=$('confirmOverlay'),confirmText=$('confirmText'),confirmYes=$('confirmYes'),confirmNo=$('confirmNo'),confirmCb=null;
 
@@ -422,6 +425,7 @@ btnSaveDiary.addEventListener('click',function(){
   });
 });
 function renderDiary(){
+  updateStreak();
   var days=[];for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);days.push(dateStr(d))}
   var em={};state.diary.forEach(function(e){em[e.date]=e});var has=false;
   diaryWeek.innerHTML=days.map(function(ds){var d=new Date(ds+'T12:00:00');var wd=(d.getDay()+6)%7;var e=em[ds];if(e)has=true;return'<div class="diary-week-day"><div class="diary-week-day-label">'+WD[wd]+'</div><div class="diary-week-day-num">'+d.getDate()+'</div><div class="diary-week-day-mood'+(e?'':' empty')+'">'+(e?MOOD_F[e.mood]:'-')+'</div></div>'}).join('');
@@ -451,6 +455,113 @@ diaryHistory.addEventListener('click',function(e){
   })
 });
 
+// BREATHING EXERCISES
+var BREATHE={
+  calm:{name:'Calma 4-7-8',phases:[{t:'Inhala',d:4},{t:'Aguanta',d:7},{t:'Exhala',d:8}],rounds:4,color:'#748ffc'},
+  focus:{name:'Enfoque Cuadrada',phases:[{t:'Inhala',d:4},{t:'Aguanta',d:4},{t:'Exhala',d:4},{t:'Pausa',d:4}],rounds:4,color:'#51cf66'},
+  relax:{name:'Relajación',phases:[{t:'Inhala',d:5},{t:'Exhala',d:5}],rounds:5,color:'#22b8cf'}
+};
+var bst={key:null,round:0,phaseIdx:0,timeLeft:0,ticker:null,running:false};
+
+document.querySelectorAll('.breathe-opt').forEach(function(b){b.addEventListener('click',function(){openBreathe(b.dataset.ex)})});
+$('breatheClose').addEventListener('click',closeBreathe);
+
+function openBreathe(key){
+  var ex=BREATHE[key];
+  bst={key:key,round:0,phaseIdx:0,timeLeft:0,ticker:null,running:false};
+  breatheTitleEl.textContent=ex.name;
+  breathePhaseEl.textContent='Prepárate';
+  breatheTimerEl.textContent='';
+  breatheRoundInfoEl.textContent='';
+  breatheInstructionEl.textContent='Encuentra una posición cómoda y respira con normalidad';
+  breatheStartBtn.textContent='Comenzar';
+  breatheStartBtn.disabled=false;
+  breatheRingEl.style.transition='none';
+  breatheRingEl.style.transform='scale(1)';
+  breatheRingEl.style.setProperty('--breathe-color',ex.color);
+  breatheOverlayEl.hidden=false;
+  document.body.style.overflow='hidden';
+}
+
+function closeBreathe(){
+  if(bst.ticker)clearInterval(bst.ticker);
+  bst.running=false;
+  breatheOverlayEl.hidden=true;
+  document.body.style.overflow='';
+}
+
+breatheStartBtn.addEventListener('click',function(){
+  if(breatheStartBtn.textContent==='Cerrar'){closeBreathe();return;}
+  if(!bst.running){
+    bst.running=true;bst.round=1;bst.phaseIdx=0;
+    breatheStartBtn.textContent='Detener';
+    runBreathePhase();
+  }else{
+    if(bst.ticker)clearInterval(bst.ticker);
+    bst.running=false;
+    breathePhaseEl.textContent='Pausado';
+    breatheTimerEl.textContent='';
+    breatheRingEl.style.transition='none';
+    breatheStartBtn.textContent='Continuar';
+  }
+});
+
+function runBreathePhase(){
+  if(!bst.running)return;
+  var ex=BREATHE[bst.key],phase=ex.phases[bst.phaseIdx];
+  bst.timeLeft=phase.d;
+  breathePhaseEl.textContent=phase.t;
+  breatheTimerEl.textContent=bst.timeLeft;
+  breatheRoundInfoEl.textContent='Ronda '+bst.round+' de '+ex.rounds;
+  if(phase.t==='Inhala'){breatheRingEl.style.transition='transform '+phase.d+'s ease-in-out';setTimeout(function(){breatheRingEl.style.transform='scale(1.45)'},20)}
+  else if(phase.t==='Exhala'){breatheRingEl.style.transition='transform '+phase.d+'s ease-in-out';setTimeout(function(){breatheRingEl.style.transform='scale(1)'},20)}
+  else{breatheRingEl.style.transition='none'}
+  bst.ticker=setInterval(function(){
+    bst.timeLeft--;
+    breatheTimerEl.textContent=bst.timeLeft>0?bst.timeLeft:'';
+    if(bst.timeLeft<=0){
+      clearInterval(bst.ticker);
+      bst.phaseIdx++;
+      if(bst.phaseIdx>=ex.phases.length){bst.phaseIdx=0;bst.round++;if(bst.round>ex.rounds){finishBreathe();return;}}
+      runBreathePhase();
+    }
+  },1000);
+}
+
+function finishBreathe(){
+  bst.running=false;
+  breathePhaseEl.textContent='¡Completado!';
+  breatheTimerEl.textContent='';
+  breatheRoundInfoEl.textContent='';
+  breatheInstructionEl.textContent='Bien hecho. Tómate un momento para notar cómo te sientes.';
+  breatheRingEl.style.transition='transform 1.5s ease-in-out';
+  setTimeout(function(){breatheRingEl.style.transform='scale(1)'},20);
+  breatheStartBtn.textContent='Cerrar';
+  breatheStartBtn.disabled=false;
+}
+
+// RACHA DE BIENESTAR
+function calcStreak(){
+  var byDate={};state.diary.forEach(function(e){byDate[e.date]=true});
+  var d=new Date(),cur=todayStr();
+  if(!byDate[cur]){d.setDate(d.getDate()-1);cur=dateStr(d)}
+  var s=0;
+  while(byDate[cur]){s++;d=new Date(cur+'T12:00:00');d.setDate(d.getDate()-1);cur=dateStr(d)}
+  return s;
+}
+function updateStreak(){
+  var s=calcStreak();
+  var el=$('streakCount'),msg=$('streakMsg');
+  if(el)el.textContent=s;
+  if(msg){
+    if(s===0)msg.textContent='Empieza hoy tu racha';
+    else if(s===1)msg.textContent='¡Bien empezado!';
+    else if(s<7)msg.textContent='¡Sigue así!';
+    else if(s<30)msg.textContent='¡Increíble racha!';
+    else msg.textContent='¡Leyenda del bienestar!';
+  }
+}
+
 // INIT
 initSettings();updateGreeting();renderCalendar();
 
@@ -471,7 +582,7 @@ window.loadData=function(userId){
     state.contacts=(res[3].data||[]).map(dbToContact);
     state.reminders=(res[4].data||[]).map(dbToReminder);
     state.diary=(res[5].data||[]).map(dbToDiary);
-    renderTasks();renderNotes();renderCalendar();renderContacts();renderReminders();loadTodayEntry();renderDiary();
+    renderTasks();renderNotes();renderCalendar();renderContacts();renderReminders();loadTodayEntry();renderDiary();updateStreak();
   });
 };
 })();

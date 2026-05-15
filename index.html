@@ -182,8 +182,41 @@
       </div>
     </section>
 
-    <!-- DIARIO -->
+    <!-- DIARIO / BIENESTAR -->
     <section class="section" id="secDiario" hidden>
+
+      <!-- RACHA -->
+      <div class="streak-banner" id="streakBanner">
+        <span class="streak-fire">🔥</span>
+        <div class="streak-info">
+          <span class="streak-count" id="streakCount">0</span>
+          <span class="streak-label">días seguidos</span>
+        </div>
+        <span class="streak-msg" id="streakMsg">Empieza hoy tu racha</span>
+      </div>
+
+      <!-- RESPIRACIÓN -->
+      <div class="breathe-card">
+        <h3 class="diary-card-title">Ejercicios de respiración</h3>
+        <div class="breathe-options">
+          <button class="breathe-opt" data-ex="calm">
+            <span class="breathe-opt-icon">😌</span>
+            <span class="breathe-opt-name">Calma</span>
+            <span class="breathe-opt-desc">4-7-8 · Ansiedad</span>
+          </button>
+          <button class="breathe-opt" data-ex="focus">
+            <span class="breathe-opt-icon">🎯</span>
+            <span class="breathe-opt-name">Enfoque</span>
+            <span class="breathe-opt-desc">4-4-4-4 · Estrés</span>
+          </button>
+          <button class="breathe-opt" data-ex="relax">
+            <span class="breathe-opt-icon">🌊</span>
+            <span class="breathe-opt-name">Relajación</span>
+            <span class="breathe-opt-desc">5-5 · Equilibrio</span>
+          </button>
+        </div>
+      </div>
+
       <div class="diary-card">
         <h3 class="diary-card-title">Como te sientes hoy?</h3>
         <div class="mood-faces" id="moodFaces">
@@ -243,8 +276,29 @@
       <button class="nav-btn" data-section="secCalendario"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Agenda</span></button>
       <button class="nav-btn" data-section="secContactos"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Contactos</span></button>
       <button class="nav-btn" data-section="secRecordatorios"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span>Alertas</span></button>
-      <button class="nav-btn" data-section="secDiario"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="2.5"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="2.5"/></svg><span>Diario</span></button>
+      <button class="nav-btn" data-section="secDiario"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="2.5"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-width="2.5"/></svg><span>Bienestar</span></button>
     </nav>
+  </div>
+
+  <!-- BREATHING OVERLAY -->
+  <div class="breathe-overlay" id="breatheOverlay" hidden>
+    <button class="breathe-close-btn" id="breatheClose">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="breathe-header">
+      <h2 id="breatheTitle"></h2>
+      <p id="breatheInstruction">Encuentra una posición cómoda</p>
+    </div>
+    <div class="breathe-circle-wrap">
+      <div class="breathe-ring" id="breatheRing">
+        <div class="breathe-phase-text" id="breathePhase">Prepárate</div>
+        <div class="breathe-timer-text" id="breatheTimerEl"></div>
+      </div>
+    </div>
+    <div class="breathe-round-info" id="breatheRoundInfo"></div>
+    <div class="breathe-actions">
+      <button class="btn btn-primary breathe-action-btn" id="breatheStartBtn">Comenzar</button>
+    </div>
   </div>
 
   <!-- MODALES -->
