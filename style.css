@@ -351,4 +351,19 @@ body{
 .breathe-action-btn{min-width:160px;padding:14px 28px;font-size:1rem}
 :root[data-theme="dark"] .breathe-ring{background:var(--surface-alt)}
 @media(max-width:500px){.breathe-options{grid-template-columns:repeat(3,1fr)}.breathe-opt{padding:10px 4px}.breathe-opt-desc{display:none}}
+
+/* SOUNDS */
+.sounds-card{background:var(--surface);border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.sounds-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.sound-btn{background:var(--surface-alt);border:2px solid transparent;border-radius:var(--radius-sm);padding:12px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;font-family:inherit;color:var(--text)}
+.sound-btn:hover{background:var(--primary-light)}
+.sound-btn.active{background:var(--primary-light);border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 20%,transparent)}
+.sound-icon{font-size:1.5rem;line-height:1}
+.sound-name{font-size:.68rem;font-weight:600;color:var(--text-secondary)}
+.sound-btn.active .sound-name{color:var(--primary)}
+.sounds-volume{display:flex;align-items:center;gap:8px;margin-top:14px;padding:0 2px}
+.sounds-volume svg{flex-shrink:0;color:var(--text-secondary)}
+.sounds-volume input[type=range]{flex:1;accent-color:var(--primary);cursor:pointer}
+.sounds-tip{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text-secondary);margin-bottom:14px;padding:0 4px}
+@media(max-width:400px){.sounds-grid{grid-template-columns:repeat(3,1fr)}}
 .setting-email{font-size:.72rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
