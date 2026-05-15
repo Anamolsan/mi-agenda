@@ -389,7 +389,8 @@ body{
 .emotions-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:400px}
 .emotion-card{background:color-mix(in srgb,var(--em-c) 15%,var(--surface));border:2px solid color-mix(in srgb,var(--em-c) 30%,transparent);border-radius:var(--radius);padding:16px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s;font-family:inherit;--em-c:#748ffc}
 .emotion-card:hover,.emotion-card:active{transform:scale(1.06);background:color-mix(in srgb,var(--em-c) 28%,var(--surface));border-color:var(--em-c)}
-.emotion-card-emoji{font-size:2.4rem;line-height:1}
+.emotion-card-face{width:52px;height:52px;display:flex;align-items:center;justify-content:center}
+.emotion-card-face svg{width:52px;height:52px}
 .emotion-card-label{font-size:.75rem;font-weight:700;color:var(--text);text-align:center}
 .child-mood-saved{display:flex;flex-direction:column;align-items:center;gap:12px;padding:40px 20px}
 .child-saved-emoji{font-size:5rem;line-height:1}
