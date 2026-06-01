@@ -797,6 +797,63 @@ function updateStreak(){
   }
 }
 
+// GAME
+var GAME_EMOJIS=['🌸','🌊','🦋','🌙','⭐','🌈','🌺','🍃'];
+var gst={cards:[],flipped:[],matched:0,moves:0,locked:false,ticker:null,seconds:0};
+
+function gameInit(){
+  gst.matched=0;gst.moves=0;gst.locked=false;gst.seconds=0;gst.flipped=[];
+  if(gst.ticker)clearInterval(gst.ticker);
+  $('gameMoves').textContent='0';$('gamePairs').textContent='0';$('gameTimer').textContent='0:00';
+  $('gameWin').hidden=true;$('gameGrid').hidden=false;$('gameRestartTop').hidden=false;
+  var pairs=GAME_EMOJIS.concat(GAME_EMOJIS);
+  for(var i=pairs.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pairs[i];pairs[i]=pairs[j];pairs[j]=t}
+  gst.cards=pairs;
+  $('gameGrid').innerHTML=pairs.map(function(em,i){
+    return'<div class="game-card" data-idx="'+i+'">'
+      +'<div class="game-card-inner">'
+      +'<div class="game-card-front"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 2L15 9H22L16.5 13.5L18.5 21L12 17L5.5 21L7.5 13.5L2 9H9Z"/></svg></div>'
+      +'<div class="game-card-back">'+em+'</div>'
+      +'</div></div>';
+  }).join('');
+  gst.ticker=setInterval(function(){
+    gst.seconds++;
+    var m=Math.floor(gst.seconds/60),s=gst.seconds%60;
+    $('gameTimer').textContent=m+':'+(s<10?'0':'')+s;
+  },1000);
+}
+
+$('gameGrid').addEventListener('click',function(e){
+  var card=e.target.closest('.game-card');
+  if(!card||gst.locked)return;
+  var idx=parseInt(card.dataset.idx);
+  if(card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  card.classList.add('flipped');
+  gst.flipped.push({el:card,idx:idx});
+  if(gst.flipped.length===2){
+    gst.locked=true;gst.moves++;$('gameMoves').textContent=gst.moves;
+    var a=gst.flipped[0],b=gst.flipped[1];
+    if(gst.cards[a.idx]===gst.cards[b.idx]){
+      a.el.classList.add('matched');b.el.classList.add('matched');
+      gst.matched++;$('gamePairs').textContent=gst.matched;
+      gst.flipped=[];gst.locked=false;
+      if(gst.matched===8){
+        clearInterval(gst.ticker);
+        var msgs=['¡Mente enfocada y tranquila!','¡Lo has conseguido!','¡Genial! La concentración es tu superpoder.','¡Perfecto! Respira y disfruta del momento.'];
+        $('gameWinMsg').textContent=msgs[gst.moves<16?0:gst.moves<24?1:gst.moves<32?2:3];
+        setTimeout(function(){$('gameWin').hidden=false;$('gameGrid').hidden=true;$('gameRestartTop').hidden=true},400);
+      }
+    }else{
+      setTimeout(function(){a.el.classList.remove('flipped');b.el.classList.remove('flipped');gst.flipped=[];gst.locked=false},900);
+    }
+  }
+});
+
+$('btnOpenGame').addEventListener('click',function(){gameInit();$('gameOverlay').hidden=false;document.body.style.overflow='hidden'});
+$('gameClose').addEventListener('click',function(){clearInterval(gst.ticker);$('gameOverlay').hidden=true;document.body.style.overflow=''});
+$('gameRestart').addEventListener('click',gameInit);
+$('gameRestartTop').addEventListener('click',gameInit);
+
 // INIT
 initSettings();updateGreeting();renderCalendar();
 
