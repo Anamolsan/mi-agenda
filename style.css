@@ -105,6 +105,15 @@ body{
 .item-actions button:hover{background:var(--surface-alt)}
 .item-actions .act-delete:hover{color:var(--danger)}
 .item-actions .act-edit:hover{color:var(--primary)}
+.child-btns .act-history{width:34px;height:34px;border-radius:10px;background:#e6fcf5;color:#0c8599;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.child-btns .act-history:hover{background:#c3fae8;transform:scale(1.08)}
+.child-btns .act-edit{width:34px;height:34px;border-radius:10px;background:#f0f4ff;color:#3b5bdb;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.child-btns .act-edit:hover{background:#dbe4ff;transform:scale(1.08)}
+.child-btns .act-delete{width:34px;height:34px;border-radius:10px;background:#fff0f0;color:#e03131;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.child-btns .act-delete:hover{background:#ffe3e3;transform:scale(1.08)}
+.child-mood-note{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;padding:0 8px}
+.child-mood-note textarea{width:100%;border-radius:var(--radius-sm);border:1.5px solid var(--border);padding:12px;font-family:inherit;font-size:.88rem;resize:none;background:var(--surface-alt);color:var(--text)}
+.child-mood-note textarea:focus{outline:none;border-color:var(--primary)}
 
 /* NOTES */
 .notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}

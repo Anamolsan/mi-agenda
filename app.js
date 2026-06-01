@@ -565,9 +565,10 @@ if(volSlider){volSlider.addEventListener('input',function(){if(sndMaster)sndMast
 var childListEl=$('childList'),emptyChildrenEl=$('emptyChildren');
 var childMoodOverlayEl=$('childMoodOverlay'),childMoodChildNameEl=$('childMoodChildName');
 var emotionsGridEl=$('emotionsGrid'),childMoodSavedEl=$('childMoodSaved'),savedEmojiEl=$('savedEmoji');
+var childMoodNoteEl=$('childMoodNote'),childNoteInputEl=$('childNoteInput'),savedEmojiNoteEl=$('savedEmojiNote');
 var childHistoryOverlayEl=$('childHistoryOverlay'),childHistoryNameEl=$('childHistoryName'),childHistoryContentEl=$('childHistoryContent');
 var modalChildEl=$('modalChild'),formChildEl=$('formChild'),childNameInputEl=$('childNameInput');
-var activeChildForMood=null;
+var activeChildForMood=null,pendingEmotion=null;
 var CHILD_COLORS=['#748ffc','#ff6b6b','#51cf66','#fcc419','#cc5de8','#22b8cf','#f06595','#ff922b'];
 
 function renderChildren(){
@@ -584,7 +585,7 @@ function renderChildren(){
       +'<div class="child-info"><div class="child-name">'+esc(c.name)+'</div>'+badge+'</div>'
       +'<div class="child-btns">'
       +'<button class="btn btn-primary child-feel-btn" data-action="openMood" data-id="'+c.id+'">¿Cómo te sientes?</button>'
-      +'<button class="act-edit" data-action="historyChild" data-id="'+c.id+'" title="Ver historial"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></button>'
+      +'<button class="act-history" data-action="historyChild" data-id="'+c.id+'" title="Ver historial"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></button>'
       +'<button class="act-edit" data-action="editChild" data-id="'+c.id+'">'+SVG_EDT+'</button>'
       +'<button class="act-delete" data-action="deleteChild" data-id="'+c.id+'">'+SVG_DEL+'</button>'
       +'</div></div>';
@@ -636,6 +637,8 @@ function openMoodOverlay(childId){
   activeChildForMood=childId;
   childMoodChildNameEl.textContent=c.name+'?';
   childMoodSavedEl.hidden=true;
+  childMoodNoteEl.hidden=true;
+  pendingEmotion=null;
   emotionsGridEl.hidden=false;
   emotionsGridEl.innerHTML=EMOTIONS.map(function(em){
     return'<button class="emotion-card" data-eid="'+em.id+'" style="--em-c:'+em.c+'">'
@@ -649,17 +652,28 @@ function openMoodOverlay(childId){
 emotionsGridEl.addEventListener('click',function(e){
   var b=e.target.closest('.emotion-card');if(!b||!activeChildForMood)return;
   var eid=b.dataset.eid,em=getEmotion(eid);
-  _sb.from('child_moods').insert({child_id:activeChildForMood,user_id:currentUserId,emotion:eid,emotion_label:em.l,logged_at:todayStr()}).select().then(function(r){
+  pendingEmotion={eid:eid,em:em};
+  savedEmojiNoteEl.innerHTML=EMOTION_SVG[em.id]||em.e;
+  childNoteInputEl.value='';
+  emotionsGridEl.hidden=true;
+  childMoodNoteEl.hidden=false;
+});
+$('childNoteSave').addEventListener('click',function(){
+  if(!pendingEmotion||!activeChildForMood)return;
+  var note=childNoteInputEl.value.trim();
+  var em=pendingEmotion.em,eid=pendingEmotion.eid;
+  _sb.from('child_moods').insert({child_id:activeChildForMood,user_id:currentUserId,emotion:eid,emotion_label:em.l,note:note||null,logged_at:todayStr()}).select().then(function(r){
     if(!r.error&&r.data&&r.data[0])state.childMoods.unshift(dbToChildMood(r.data[0]));
     savedEmojiEl.innerHTML=EMOTION_SVG[em.id]||em.e;
-    emotionsGridEl.hidden=true;
+    childMoodNoteEl.hidden=true;
     childMoodSavedEl.hidden=false;
+    pendingEmotion=null;
     renderChildren();
   });
 });
 $('childMoodSavedClose').addEventListener('click',closeMoodOverlay);
 $('childMoodClose').addEventListener('click',closeMoodOverlay);
-function closeMoodOverlay(){activeChildForMood=null;childMoodOverlayEl.hidden=true;document.body.style.overflow=''}
+function closeMoodOverlay(){activeChildForMood=null;pendingEmotion=null;childMoodOverlayEl.hidden=true;document.body.style.overflow=''}
 
 function openChildHistoryOverlay(childId){
   var c=state.children.find(function(x){return x.id===childId});if(!c)return;

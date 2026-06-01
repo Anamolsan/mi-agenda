@@ -1,4 +1,4 @@
-var CACHE='mi-agenda-v1';
+var CACHE='mi-agenda-v2';
 var FILES=['./index.html','./style.css','./app.js','./auth.js','./supabase-client.js','./manifest.json','./icon.svg','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',function(e){
